@@ -1,12 +1,15 @@
 #include <pebble.h>
 
+// 18x12+\0
+#define BUFFER_SIZE 217
+
 static Window *s_main_window;
 static TextLayer *s_time_layer;
 
 static GFont s_time_font;
 
-static BitmapLayer *s_starman_layer;
-static GBitmap *s_starman_bitmap;
+// static BitmapLayer *s_starman_layer;
+// static GBitmap *s_starman_bitmap;
 
 static void update_time() {
   // Get a tm structure
@@ -14,7 +17,7 @@ static void update_time() {
   struct tm *tick_time = localtime(&temp);
 
   // Create a long-lived buffer
-  static char buffer[150];// = "00:00";
+  static char buffer[BUFFER_SIZE];
 
   // Write the current hours and minutes into the buffer
 
@@ -22,10 +25,28 @@ static void update_time() {
   //if(clock_is_24h_style() == true) {
 
   // TODO: this is horrendous/just very rough a prototype - refactor ASAP!
-  if(tick_time->tm_sec % 2) {
-    strftime(buffer, 150, "PW-DOS %d.%m\nCopyright (c) %Y\n\nAUTOEXEC BAT %H:%M\nCOMMAND  COM %H:%M\nCONFIG   SYS %H:%M\n 3 files %j bytes\n %U bytes free\n\nC:\\> ", tick_time);    
-  } else {
-    strftime(buffer, 150, "PW-DOS %d.%m\nCopyright (c) %Y\n\nAUTOEXEC BAT %H:%M\nCOMMAND  COM %H:%M\nCONFIG   SYS %H:%M\n 3 files %j bytes\n %U bytes free\n\nC:\\>_", tick_time);    
+
+  // fake DIR "typing"
+  if (tick_time->tm_sec == 57)
+      strftime(buffer, BUFFER_SIZE, "PW-DOS %d.%m\nCopyright (c) %Y\n\nAUTOEXEC BAT %H:%M\nCOMMAND  COM %H:%M\nCONFIG   SYS %H:%M\n 3 files %j bytes\n %U bytes free\n\nC:\\>D", tick_time);    
+  else if (tick_time->tm_sec == 58)
+      strftime(buffer, BUFFER_SIZE, "PW-DOS %d.%m\nCopyright (c) %Y\n\nAUTOEXEC BAT %H:%M\nCOMMAND  COM %H:%M\nCONFIG   SYS %H:%M\n 3 files %j bytes\n %U bytes free\n\nC:\\>DI", tick_time);    
+  else if (tick_time->tm_sec == 59)
+      strftime(buffer, BUFFER_SIZE, "PW-DOS %d.%m\nCopyright (c) %Y\n\nAUTOEXEC BAT %H:%M\nCOMMAND  COM %H:%M\nCONFIG   SYS %H:%M\n 3 files %j bytes\n %U bytes free\n\nC:\\>DIR", tick_time);    
+  // fake "scroll" after DIR
+  else if (tick_time->tm_sec == 0)
+      strftime(buffer, BUFFER_SIZE, "AUTOEXEC BAT %H:%M\nCOMMAND  COM %H:%M\nCONFIG   SYS %H:%M\n 3 files %j bytes\n %U bytes free\n\nC:\\>DIR\nPW-DOS %d.%m\nCopyright (c) %Y\n\n", tick_time);    
+  else if (tick_time->tm_sec == 1)
+      strftime(buffer, BUFFER_SIZE, "\n 3 files %j bytes\n %U bytes free\n\nC:\\>DIR\nPW-DOS %d.%m\nCopyright (c) %Y\n\nAUTOEXEC BAT %H:%M\nCOMMAND  COM %H:%M\nCONFIG   SYS %H:%M", tick_time);    
+  else if (tick_time->tm_sec == 2)
+      strftime(buffer, BUFFER_SIZE, "C:\\>DIR\n\n\nPW-DOS %d.%m\nCopyright (c) %Y\n\nAUTOEXEC BAT %H:%M\nCOMMAND  COM %H:%M\nCONFIG   SYS %H:%M\n 3 files %j bytes\n %U bytes free", tick_time);    
+
+  else {
+    if(tick_time->tm_sec % 2) {
+      strftime(buffer, BUFFER_SIZE, "PW-DOS %d.%m\nCopyright (c) %Y\n\nAUTOEXEC BAT %H:%M\nCOMMAND  COM %H:%M\nCONFIG   SYS %H:%M\n 3 files %j bytes\n %U bytes free\n\nC:\\> ", tick_time);    
+    } else {
+      strftime(buffer, BUFFER_SIZE, "PW-DOS %d.%m\nCopyright (c) %Y\n\nAUTOEXEC BAT %H:%M\nCOMMAND  COM %H:%M\nCONFIG   SYS %H:%M\n 3 files %j bytes\n %U bytes free\n\nC:\\>_", tick_time);    
+    }
   }
 
   // Display this time on the TextLayer
@@ -52,11 +73,11 @@ static void main_window_load(Window *window) {
   // Add it as a child layer to the Window's root layer
   layer_add_child(window_get_root_layer(window), text_layer_get_layer(s_time_layer));
 
-  // Create GBitmap, then set to created BitmapLayer
-  s_starman_bitmap = gbitmap_create_with_resource(RESOURCE_ID_STARMAN);
-  s_starman_layer = bitmap_layer_create(GRect(104, 128, 40, 40));
-  bitmap_layer_set_bitmap(s_starman_layer, s_starman_bitmap);
-  layer_add_child(window_get_root_layer(window), bitmap_layer_get_layer(s_starman_layer));
+  // // Create GBitmap, then set to created BitmapLayer
+  // s_starman_bitmap = gbitmap_create_with_resource(RESOURCE_ID_STARMAN);
+  // s_starman_layer = bitmap_layer_create(GRect(104, 128, 40, 40));
+  // bitmap_layer_set_bitmap(s_starman_layer, s_starman_bitmap);
+  // layer_add_child(window_get_root_layer(window), bitmap_layer_get_layer(s_starman_layer));
 }
 
 static void main_window_unload(Window *window) {
@@ -66,11 +87,11 @@ static void main_window_unload(Window *window) {
   // Unload GFont
   fonts_unload_custom_font(s_time_font);
 
-  // Destroy GBitmap
-  gbitmap_destroy(s_starman_bitmap);
+  // // Destroy GBitmap
+  // gbitmap_destroy(s_starman_bitmap);
 
-  // Destroy BitmapLayer
-  bitmap_layer_destroy(s_starman_layer);
+  // // Destroy BitmapLayer
+  // bitmap_layer_destroy(s_starman_layer);
 }
 
 static void init() {

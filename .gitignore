@@ -1,3 +1,5 @@
-
 # Ignore build generated files
 build
+
+# Ignore Screenshots
+pebble-screenshot_*

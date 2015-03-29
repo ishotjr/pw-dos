@@ -5,13 +5,14 @@
 
 static Window *s_main_window;
 static TextLayer *s_time_layer;
+static InverterLayer *s_cursor_layer;
 
 static GFont s_time_font;
 
 // static BitmapLayer *s_starman_layer;
 // static GBitmap *s_starman_bitmap;
 
-static void update_time() {
+static void update_time(bool reset) {
   // Get a tm structure
   time_t temp = time(NULL); 
   struct tm *tick_time = localtime(&temp);
@@ -26,26 +27,43 @@ static void update_time() {
 
   // TODO: this is horrendous/just very rough a prototype - refactor ASAP!
 
-  // fake DIR "typing"
-  if (tick_time->tm_sec == 57)
-      strftime(buffer, BUFFER_SIZE, "PW-DOS %d.%m\nCopyright (c) %Y\n\nAUTOEXEC BAT %H:%M\nCOMMAND  COM %H:%M\nCONFIG   SYS %H:%M\n 3 files %j bytes\n %U bytes free\n\nC:\\>D", tick_time);    
-  else if (tick_time->tm_sec == 58)
-      strftime(buffer, BUFFER_SIZE, "PW-DOS %d.%m\nCopyright (c) %Y\n\nAUTOEXEC BAT %H:%M\nCOMMAND  COM %H:%M\nCONFIG   SYS %H:%M\n 3 files %j bytes\n %U bytes free\n\nC:\\>DI", tick_time);    
-  else if (tick_time->tm_sec == 59)
-      strftime(buffer, BUFFER_SIZE, "PW-DOS %d.%m\nCopyright (c) %Y\n\nAUTOEXEC BAT %H:%M\nCOMMAND  COM %H:%M\nCONFIG   SYS %H:%M\n 3 files %j bytes\n %U bytes free\n\nC:\\>DIR", tick_time);    
-  // fake "scroll" after DIR
-  else if (tick_time->tm_sec == 0)
-      strftime(buffer, BUFFER_SIZE, "AUTOEXEC BAT %H:%M\nCOMMAND  COM %H:%M\nCONFIG   SYS %H:%M\n 3 files %j bytes\n %U bytes free\n\nC:\\>DIR\nPW-DOS %d.%m\nCopyright (c) %Y\n\n", tick_time);    
-  else if (tick_time->tm_sec == 1)
-      strftime(buffer, BUFFER_SIZE, "\n 3 files %j bytes\n %U bytes free\n\nC:\\>DIR\nPW-DOS %d.%m\nCopyright (c) %Y\n\nAUTOEXEC BAT %H:%M\nCOMMAND  COM %H:%M\nCONFIG   SYS %H:%M", tick_time);    
-  else if (tick_time->tm_sec == 2)
-      strftime(buffer, BUFFER_SIZE, "C:\\>DIR\n\n\nPW-DOS %d.%m\nCopyright (c) %Y\n\nAUTOEXEC BAT %H:%M\nCOMMAND  COM %H:%M\nCONFIG   SYS %H:%M\n 3 files %j bytes\n %U bytes free", tick_time);    
+  if (reset) {
 
-  else {
-    if(tick_time->tm_sec % 2) {
-      strftime(buffer, BUFFER_SIZE, "PW-DOS %d.%m\nCopyright (c) %Y\n\nAUTOEXEC BAT %H:%M\nCOMMAND  COM %H:%M\nCONFIG   SYS %H:%M\n 3 files %j bytes\n %U bytes free\n\nC:\\> ", tick_time);    
-    } else {
-      strftime(buffer, BUFFER_SIZE, "PW-DOS %d.%m\nCopyright (c) %Y\n\nAUTOEXEC BAT %H:%M\nCOMMAND  COM %H:%M\nCONFIG   SYS %H:%M\n 3 files %j bytes\n %U bytes free\n\nC:\\>_", tick_time);    
+    // start out with "regular" screen on initial launch, regardless of second
+    strftime(buffer, BUFFER_SIZE, "PW-DOS %d.%m\nCopyright (c) %Y\n\nAUTOEXEC BAT %H:%M\nCOMMAND  COM %H:%M\nCONFIG   SYS %H:%M\n 3 files %j bytes\n %U bytes free\n\nC:\\>", tick_time);    
+
+  } else {
+
+    // fake DIR "typing"
+    if (tick_time->tm_sec == 57)
+        strftime(buffer, BUFFER_SIZE, "PW-DOS %d.%m\nCopyright (c) %Y\n\nAUTOEXEC BAT %H:%M\nCOMMAND  COM %H:%M\nCONFIG   SYS %H:%M\n 3 files %j bytes\n %U bytes free\n\nC:\\>D", tick_time);    
+    else if (tick_time->tm_sec == 58)
+        strftime(buffer, BUFFER_SIZE, "PW-DOS %d.%m\nCopyright (c) %Y\n\nAUTOEXEC BAT %H:%M\nCOMMAND  COM %H:%M\nCONFIG   SYS %H:%M\n 3 files %j bytes\n %U bytes free\n\nC:\\>DI", tick_time);    
+    else if (tick_time->tm_sec == 59)
+        strftime(buffer, BUFFER_SIZE, "PW-DOS %d.%m\nCopyright (c) %Y\n\nAUTOEXEC BAT %H:%M\nCOMMAND  COM %H:%M\nCONFIG   SYS %H:%M\n 3 files %j bytes\n %U bytes free\n\nC:\\>DIR", tick_time);    
+    // fake "scroll" after DIR
+    else if (tick_time->tm_sec == 0)
+        strftime(buffer, BUFFER_SIZE, "AUTOEXEC BAT %H:%M\nCOMMAND  COM %H:%M\nCONFIG   SYS %H:%M\n 3 files %j bytes\n %U bytes free\n\nC:\\>DIR\nPW-DOS %d.%m\nCopyright (c) %Y\n\n", tick_time);    
+    else if (tick_time->tm_sec == 1)
+        strftime(buffer, BUFFER_SIZE, "\n 3 files %j bytes\n %U bytes free\n\nC:\\>DIR\nPW-DOS %d.%m\nCopyright (c) %Y\n\nAUTOEXEC BAT %H:%M\nCOMMAND  COM %H:%M\nCONFIG   SYS %H:%M", tick_time);    
+    else if (tick_time->tm_sec == 2)
+        strftime(buffer, BUFFER_SIZE, "C:\\>DIR\n\n\nPW-DOS %d.%m\nCopyright (c) %Y\n\nAUTOEXEC BAT %H:%M\nCOMMAND  COM %H:%M\nCONFIG   SYS %H:%M\n 3 files %j bytes\n %U bytes free", tick_time);    
+    else if (tick_time->tm_sec == 3) {
+        // set "regular" screen again for remainder of the minute
+        strftime(buffer, BUFFER_SIZE, "PW-DOS %d.%m\nCopyright (c) %Y\n\nAUTOEXEC BAT %H:%M\nCOMMAND  COM %H:%M\nCONFIG   SYS %H:%M\n 3 files %j bytes\n %U bytes free\n\nC:\\>", tick_time);    
+        layer_set_hidden((Layer *)s_cursor_layer, false);
+    }
+
+    else {
+      if(tick_time->tm_sec % 2) {
+        // InverterLayer requires cast
+        layer_set_hidden((Layer *)s_cursor_layer, false);
+        //strftime(buffer, BUFFER_SIZE, "PW-DOS %d.%m\nCopyright (c) %Y\n\nAUTOEXEC BAT %H:%M\nCOMMAND  COM %H:%M\nCONFIG   SYS %H:%M\n 3 files %j bytes\n %U bytes free\n\nC:\\> ", tick_time);    
+      } else {
+        // InverterLayer requires cast
+        layer_set_hidden((Layer *)s_cursor_layer, true);
+        //strftime(buffer, BUFFER_SIZE, "PW-DOS %d.%m\nCopyright (c) %Y\n\nAUTOEXEC BAT %H:%M\nCOMMAND  COM %H:%M\nCONFIG   SYS %H:%M\n 3 files %j bytes\n %U bytes free\n\nC:\\>_", tick_time);    
+      }
     }
   }
 
@@ -54,7 +72,7 @@ static void update_time() {
 }
 
 static void tick_handler(struct tm *tick_time, TimeUnits units_changed) {
-  update_time();
+  update_time(false);
 }
 
 static void main_window_load(Window *window) {
@@ -70,6 +88,11 @@ static void main_window_load(Window *window) {
   // Apply to TextLayer
   text_layer_set_font(s_time_layer, s_time_font);
 
+  // Create cursor InverterLayer
+  s_cursor_layer = inverter_layer_create(GRect(32, 141, 7, 1));
+  // Add as child to time TextLayer
+  layer_add_child(text_layer_get_layer(s_time_layer), inverter_layer_get_layer(s_cursor_layer));
+
   // Add it as a child layer to the Window's root layer
   layer_add_child(window_get_root_layer(window), text_layer_get_layer(s_time_layer));
 
@@ -83,6 +106,9 @@ static void main_window_load(Window *window) {
 static void main_window_unload(Window *window) {
   // Destroy TextLayer
   text_layer_destroy(s_time_layer);
+
+  // Destroy InverterLayer
+  inverter_layer_destroy(s_cursor_layer);
 
   // Unload GFont
   fonts_unload_custom_font(s_time_font);
@@ -108,7 +134,7 @@ static void init() {
   window_stack_push(s_main_window, true);
 
   // Make sure the time is displayed from the start
-  update_time();
+  update_time(true);
 
   // Register with TickTimerService
   //tick_timer_service_subscribe(MINUTE_UNIT, tick_handler);

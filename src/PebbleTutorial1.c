@@ -3,16 +3,26 @@
 // 18x12+\0
 #define BUFFER_SIZE 217
 
+// number of milliseconds cursor stays on/off, and total duration
+#define BLINK_RATE_MS 533
+#define BLINK_DURATION_MS 7500
+
 static Window *s_main_window;
 static TextLayer *s_time_layer;
 static InverterLayer *s_cursor_layer;
 
 static GFont s_time_font;
 
+static int s_cursor_blink_count = 0;
+static AppTimer *s_cursor_timer;
+
+static int s_dir_frame_count = 0;
+static AppTimer *s_dir_timer;
+
 // static BitmapLayer *s_starman_layer;
 // static GBitmap *s_starman_bitmap;
 
-static void update_time(bool reset) {
+static void update_time(int frame) {
   // Get a tm structure
   time_t temp = time(NULL); 
   struct tm *tick_time = localtime(&temp);
@@ -20,60 +30,95 @@ static void update_time(bool reset) {
   // Create a long-lived buffer
   static char buffer[BUFFER_SIZE];
 
-  // Write the current hours and minutes into the buffer
-
   // TODO:
   //if(clock_is_24h_style() == true) {
 
   // TODO: this is horrendous/just very rough a prototype - refactor ASAP!
 
-  if (reset) {
-
-    // start out with "regular" screen on initial launch, regardless of second
-    strftime(buffer, BUFFER_SIZE, "PW-DOS %d.%m\nCopyright (c) %Y\n\nAUTOEXEC BAT %H:%M\nCOMMAND  COM %H:%M\nCONFIG   SYS %H:%M\n 3 files %j bytes\n %U bytes free\n\nC:\\>", tick_time);    
-
-  } else {
-
-    // fake DIR "typing"
-    if (tick_time->tm_sec == 57)
-        strftime(buffer, BUFFER_SIZE, "PW-DOS %d.%m\nCopyright (c) %Y\n\nAUTOEXEC BAT %H:%M\nCOMMAND  COM %H:%M\nCONFIG   SYS %H:%M\n 3 files %j bytes\n %U bytes free\n\nC:\\>D", tick_time);    
-    else if (tick_time->tm_sec == 58)
-        strftime(buffer, BUFFER_SIZE, "PW-DOS %d.%m\nCopyright (c) %Y\n\nAUTOEXEC BAT %H:%M\nCOMMAND  COM %H:%M\nCONFIG   SYS %H:%M\n 3 files %j bytes\n %U bytes free\n\nC:\\>DI", tick_time);    
-    else if (tick_time->tm_sec == 59)
-        strftime(buffer, BUFFER_SIZE, "PW-DOS %d.%m\nCopyright (c) %Y\n\nAUTOEXEC BAT %H:%M\nCOMMAND  COM %H:%M\nCONFIG   SYS %H:%M\n 3 files %j bytes\n %U bytes free\n\nC:\\>DIR", tick_time);    
-    // fake "scroll" after DIR
-    else if (tick_time->tm_sec == 0)
-        strftime(buffer, BUFFER_SIZE, "AUTOEXEC BAT %H:%M\nCOMMAND  COM %H:%M\nCONFIG   SYS %H:%M\n 3 files %j bytes\n %U bytes free\n\nC:\\>DIR\nPW-DOS %d.%m\nCopyright (c) %Y\n\n", tick_time);    
-    else if (tick_time->tm_sec == 1)
-        strftime(buffer, BUFFER_SIZE, "\n 3 files %j bytes\n %U bytes free\n\nC:\\>DIR\nPW-DOS %d.%m\nCopyright (c) %Y\n\nAUTOEXEC BAT %H:%M\nCOMMAND  COM %H:%M\nCONFIG   SYS %H:%M", tick_time);    
-    else if (tick_time->tm_sec == 2)
-        strftime(buffer, BUFFER_SIZE, "C:\\>DIR\n\n\nPW-DOS %d.%m\nCopyright (c) %Y\n\nAUTOEXEC BAT %H:%M\nCOMMAND  COM %H:%M\nCONFIG   SYS %H:%M\n 3 files %j bytes\n %U bytes free", tick_time);    
-    else if (tick_time->tm_sec == 3) {
-        // set "regular" screen again for remainder of the minute
-        strftime(buffer, BUFFER_SIZE, "PW-DOS %d.%m\nCopyright (c) %Y\n\nAUTOEXEC BAT %H:%M\nCOMMAND  COM %H:%M\nCONFIG   SYS %H:%M\n 3 files %j bytes\n %U bytes free\n\nC:\\>", tick_time);    
-        layer_set_hidden((Layer *)s_cursor_layer, false);
-    }
-
-    else {
-      if(tick_time->tm_sec % 2) {
-        // InverterLayer requires cast
-        layer_set_hidden((Layer *)s_cursor_layer, false);
-        //strftime(buffer, BUFFER_SIZE, "PW-DOS %d.%m\nCopyright (c) %Y\n\nAUTOEXEC BAT %H:%M\nCOMMAND  COM %H:%M\nCONFIG   SYS %H:%M\n 3 files %j bytes\n %U bytes free\n\nC:\\> ", tick_time);    
-      } else {
-        // InverterLayer requires cast
-        layer_set_hidden((Layer *)s_cursor_layer, true);
-        //strftime(buffer, BUFFER_SIZE, "PW-DOS %d.%m\nCopyright (c) %Y\n\nAUTOEXEC BAT %H:%M\nCOMMAND  COM %H:%M\nCONFIG   SYS %H:%M\n 3 files %j bytes\n %U bytes free\n\nC:\\>_", tick_time);    
-      }
-    }
+  // fake DIR "typing"
+  if (frame == 1)
+      strftime(buffer, BUFFER_SIZE, "PW-DOS %d.%m\nCopyright (c) %Y\n\nAUTOEXEC BAT %H:%M\nCOMMAND  COM %H:%M\nCONFIG   SYS %H:%M\n 3 files %j bytes\n %U bytes free\n\nC:\\>D", tick_time);    
+  else if (frame == 2)
+      strftime(buffer, BUFFER_SIZE, "PW-DOS %d.%m\nCopyright (c) %Y\n\nAUTOEXEC BAT %H:%M\nCOMMAND  COM %H:%M\nCONFIG   SYS %H:%M\n 3 files %j bytes\n %U bytes free\n\nC:\\>DI", tick_time);    
+  else if (frame == 3)
+      strftime(buffer, BUFFER_SIZE, "PW-DOS %d.%m\nCopyright (c) %Y\n\nAUTOEXEC BAT %H:%M\nCOMMAND  COM %H:%M\nCONFIG   SYS %H:%M\n 3 files %j bytes\n %U bytes free\n\nC:\\>DIR", tick_time);    
+  // fake "scroll" after DIR
+  else if (frame == 4)
+      strftime(buffer, BUFFER_SIZE, "AUTOEXEC BAT %H:%M\nCOMMAND  COM %H:%M\nCONFIG   SYS %H:%M\n 3 files %j bytes\n %U bytes free\n\nC:\\>DIR\nPW-DOS %d.%m\nCopyright (c) %Y\n\n", tick_time);    
+  else if (frame == 5)
+      strftime(buffer, BUFFER_SIZE, "\n 3 files %j bytes\n %U bytes free\n\nC:\\>DIR\nPW-DOS %d.%m\nCopyright (c) %Y\n\nAUTOEXEC BAT %H:%M\nCOMMAND  COM %H:%M\nCONFIG   SYS %H:%M", tick_time);    
+  else if (frame == 6)
+      strftime(buffer, BUFFER_SIZE, "C:\\>DIR\n\n\nPW-DOS %d.%m\nCopyright (c) %Y\n\nAUTOEXEC BAT %H:%M\nCOMMAND  COM %H:%M\nCONFIG   SYS %H:%M\n 3 files %j bytes\n %U bytes free", tick_time);    
+  else {
+      // set "regular" screen again for remainder of the minute
+      strftime(buffer, BUFFER_SIZE, "PW-DOS %d.%m\nCopyright (c) %Y\n\nAUTOEXEC BAT %H:%M\nCOMMAND  COM %H:%M\nCONFIG   SYS %H:%M\n 3 files %j bytes\n %U bytes free\n\nC:\\>", tick_time);    
+      //layer_set_hidden((Layer *)s_cursor_layer, false);
   }
 
   // Display this time on the TextLayer
   text_layer_set_text(s_time_layer, buffer);
 }
 
-static void tick_handler(struct tm *tick_time, TimeUnits units_changed) {
-  update_time(false);
+
+static void dir_timer_callback(void *data) {
+
+  // kill cursor timer throughout DIR animation (user could shake during) and force hidden 
+  // (to prevent floating cursor)
+  app_timer_cancel(s_cursor_timer);
+  layer_set_hidden((Layer *)s_cursor_layer, true);
+
+  // increment frame count and update display
+  update_time(++s_dir_frame_count);
+
+  // call again every 0.5s until 6th frame displayed, then reset to 0 and stop calling
+  if (s_dir_frame_count <= 6) {
+    s_dir_timer = app_timer_register(500, (AppTimerCallback) dir_timer_callback, NULL);
+  } else {
+    s_dir_frame_count = 0;
+  }
+
 }
+
+static void tick_handler(struct tm *tick_time, TimeUnits units_changed) {
+  // set up DIR timer for :57
+  s_dir_timer = app_timer_register(57 * 1000, (AppTimerCallback) dir_timer_callback, NULL);
+
+  update_time(0);
+}
+
+
+static void cursor_timer_callback(void *data) {
+
+  if (s_cursor_blink_count % 2) {
+    // InverterLayer requires cast
+    layer_set_hidden((Layer *)s_cursor_layer, false);
+  } else {
+    // InverterLayer requires cast
+    layer_set_hidden((Layer *)s_cursor_layer, true);
+  }
+
+  // increment count and call again until duration elapses, then reset to 0 and stop calling
+  if (s_cursor_blink_count < (BLINK_DURATION_MS / BLINK_RATE_MS)) {
+    s_cursor_blink_count++;
+    s_cursor_timer = app_timer_register(BLINK_RATE_MS, (AppTimerCallback) cursor_timer_callback, NULL);
+  } else {
+    s_cursor_blink_count = 0;
+  }
+
+}
+
+static void tap_handler(AccelAxisType axis, int32_t direction) {
+  // user shook or tapped Pebble (ignore axis/direction)
+
+  // kill existing timer in case of repeat shake during BLINK_DURATION_MS
+  app_timer_cancel(s_cursor_timer);  
+  // TODO: ^^^ add NULL setting/check?
+
+  // kick off cursor blinking timer
+  s_cursor_timer = app_timer_register(BLINK_RATE_MS, (AppTimerCallback) cursor_timer_callback, NULL);
+
+}
+
 
 static void main_window_load(Window *window) {
   // Create time TextLayer
@@ -92,6 +137,8 @@ static void main_window_load(Window *window) {
   s_cursor_layer = inverter_layer_create(GRect(32, 141, 7, 1));
   // Add as child to time TextLayer
   layer_add_child(text_layer_get_layer(s_time_layer), inverter_layer_get_layer(s_cursor_layer));
+  // hide initially
+  layer_set_hidden((Layer *)s_cursor_layer, true);
 
   // Add it as a child layer to the Window's root layer
   layer_add_child(window_get_root_layer(window), text_layer_get_layer(s_time_layer));
@@ -104,6 +151,10 @@ static void main_window_load(Window *window) {
 }
 
 static void main_window_unload(Window *window) {
+  // cancel any remaining timers
+  app_timer_cancel(s_cursor_timer);
+  app_timer_cancel(s_dir_timer);
+
   // Destroy TextLayer
   text_layer_destroy(s_time_layer);
 
@@ -134,11 +185,14 @@ static void init() {
   window_stack_push(s_main_window, true);
 
   // Make sure the time is displayed from the start
-  update_time(true);
+  update_time(0);
 
   // Register with TickTimerService
-  //tick_timer_service_subscribe(MINUTE_UNIT, tick_handler);
-  tick_timer_service_subscribe(SECOND_UNIT, tick_handler);
+  tick_timer_service_subscribe(MINUTE_UNIT, tick_handler);
+  //tick_timer_service_subscribe(SECOND_UNIT, tick_handler);
+
+  // Register with Tap Event Service
+  accel_tap_service_subscribe(tap_handler);
 }
 
 static void deinit() {

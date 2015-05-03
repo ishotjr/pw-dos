@@ -1,7 +1,7 @@
 #include <pebble.h>
 
 // TODO: update with each release (major + zero-padded minor version)
-#define VERSION_CODE 105  // v1.5
+#define VERSION_CODE 106  // v1.6
 
 // broken into rows for easier editing
 static const char WHATS_NEW_TEXT_01[] = "+----------------+\n";
@@ -30,7 +30,8 @@ static const char WHATS_NEW_TEXT_12[] = "+----------------+\n";
 
 static Window *s_main_window;
 static TextLayer *s_time_layer;
-static InverterLayer *s_cursor_layer;
+// crude hack to mitigate sudden deprecation of InverterLayer in dp9
+static TextLayer *s_cursor_layer;
 
 static Window *s_whats_new_window;
 static TextLayer *s_whats_new_layer;
@@ -117,10 +118,10 @@ static void tick_handler(struct tm *tick_time, TimeUnits units_changed) {
 static void cursor_timer_callback(void *data) {
 
   if (s_cursor_blink_count % 2) {
-    // InverterLayer requires cast
+    // ~~InverterLayer~~ requires cast
     layer_set_hidden((Layer *)s_cursor_layer, false);
   } else {
-    // InverterLayer requires cast
+    // ~~InverterLayer~~ requires cast
     layer_set_hidden((Layer *)s_cursor_layer, true);
   }
 
@@ -171,10 +172,14 @@ static void main_window_load(Window *window) {
   // Apply to TextLayer
   text_layer_set_font(s_time_layer, s_time_font);
 
-  // Create cursor InverterLayer
-  s_cursor_layer = inverter_layer_create(GRect(32, 141, 7, 1));
+  // Create cursor ~~InverterLayer~~
+
+  // crude hack to mitigate sudden deprecation of InverterLayer in dp9
+  // TODO: replace!
+  s_cursor_layer = text_layer_create(GRect(32, 141, 7, 1));
+  text_layer_set_background_color(s_cursor_layer, GColorWhite);
   // Add as child to time TextLayer
-  layer_add_child(text_layer_get_layer(s_time_layer), inverter_layer_get_layer(s_cursor_layer));
+  layer_add_child(text_layer_get_layer(s_time_layer), text_layer_get_layer(s_cursor_layer));
   // hide initially
   layer_set_hidden((Layer *)s_cursor_layer, true);
 
@@ -196,8 +201,8 @@ static void main_window_unload(Window *window) {
   // Destroy TextLayer
   text_layer_destroy(s_time_layer);
 
-  // Destroy InverterLayer
-  inverter_layer_destroy(s_cursor_layer);
+  // Destroy ~~InverterLayer~~
+  text_layer_destroy(s_cursor_layer);
 
   // Unload GFont
   fonts_unload_custom_font(s_time_font);

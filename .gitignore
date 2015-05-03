@@ -3,3 +3,6 @@ build
 
 # Ignore Screenshots
 pebble-screenshot_*
+
+# Ignore lock files
+.lock-*

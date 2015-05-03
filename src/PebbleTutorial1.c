@@ -7,11 +7,11 @@
 static const char WHATS_NEW_TEXT_01[] = "+----------------+\n";
 static const char WHATS_NEW_TEXT_02[] = "| ? WHAT'S NEW ? |\n";
 static const char WHATS_NEW_TEXT_03[] = "+----------------+\n";
-static const char WHATS_NEW_TEXT_04[] = "| Shake-to-blink |\n";
-static const char WHATS_NEW_TEXT_05[] = "| cursor means   |\n";
-static const char WHATS_NEW_TEXT_06[] = "| huge battery   |\n";
-static const char WHATS_NEW_TEXT_07[] = "| life improve-  |\n";
-static const char WHATS_NEW_TEXT_08[] = "| ment! :)       |\n";
+static const char WHATS_NEW_TEXT_04[] = "| 528 nm P1      |\n";
+static const char WHATS_NEW_TEXT_05[] = "| phosphor green |\n";
+static const char WHATS_NEW_TEXT_06[] = "| for Pebble     |\n";
+static const char WHATS_NEW_TEXT_07[] = "| Time users! :D |\n";
+static const char WHATS_NEW_TEXT_08[] = "|                |\n";
 static const char WHATS_NEW_TEXT_09[] = "+----------------+\n";
 static const char WHATS_NEW_TEXT_10[] = "| Please shake   |\n";
 static const char WHATS_NEW_TEXT_11[] = "| to dismiss...  |\n";
@@ -20,6 +20,13 @@ static const char WHATS_NEW_TEXT_12[] = "+----------------+\n";
 // persistent storage keys
 #define STORAGE_VERSION_CODE_KEY 1
 
+
+// set text/cursor to P1 phosphor green on hardware that supports 64 colors, otherwise revert to white
+#ifdef PBL_COLOR
+#define FOREGROUND_COLOR GColorFromHEX(0x56ff00)
+#else
+#define FOREGROUND_COLOR GColorWhite
+#endif
 
 // (18 + \n)x12+\0
 #define BUFFER_SIZE 229
@@ -163,7 +170,8 @@ static void main_window_load(Window *window) {
   // Create time TextLayer
   s_time_layer = text_layer_create(GRect(0, 0, 144, 168));
   text_layer_set_background_color(s_time_layer, GColorBlack);
-  text_layer_set_text_color(s_time_layer, GColorClear);
+
+  text_layer_set_text_color(s_time_layer, FOREGROUND_COLOR);
   text_layer_set_overflow_mode(s_time_layer, GTextOverflowModeTrailingEllipsis);
 
   // Create GFont
@@ -177,7 +185,9 @@ static void main_window_load(Window *window) {
   // crude hack to mitigate sudden deprecation of InverterLayer in dp9
   // TODO: replace!
   s_cursor_layer = text_layer_create(GRect(32, 141, 7, 1));
-  text_layer_set_background_color(s_cursor_layer, GColorWhite);
+
+  text_layer_set_background_color(s_cursor_layer, FOREGROUND_COLOR);
+
   // Add as child to time TextLayer
   layer_add_child(text_layer_get_layer(s_time_layer), text_layer_get_layer(s_cursor_layer));
   // hide initially
@@ -222,7 +232,7 @@ static void whats_new_window_load(Window *window) {
   // Create what's new TextLayer
   s_whats_new_layer = text_layer_create(GRect(0, 0, window_bounds.size.w, window_bounds.size.h));
   text_layer_set_background_color(s_whats_new_layer, GColorBlack);
-  text_layer_set_text_color(s_whats_new_layer, GColorClear);
+  text_layer_set_text_color(s_whats_new_layer, FOREGROUND_COLOR);
   text_layer_set_overflow_mode(s_whats_new_layer, GTextOverflowModeTrailingEllipsis);
 
   // (inherit from parent window (?))

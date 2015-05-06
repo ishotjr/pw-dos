@@ -6,3 +6,7 @@ pebble-screenshot_*
 
 # Ignore lock files
 .lock-*
+
+# Ignore gifs
+gifs
+*.gif

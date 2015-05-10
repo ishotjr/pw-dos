@@ -166,6 +166,18 @@ static void tap_handler(AccelAxisType axis, int32_t direction) {
 }
 
 
+void bt_handler(bool connected) {
+  // vibrate twice quickly on BT disconnect, once/long on connect
+  if (connected) {
+    vibes_long_pulse();
+    //APP_LOG(APP_LOG_LEVEL_INFO, "Phone is connected!");
+  } else {
+    vibes_double_pulse();
+    //APP_LOG(APP_LOG_LEVEL_INFO, "Phone is not connected!");
+  }
+}
+
+
 static void main_window_load(Window *window) {
   // Create time TextLayer
   s_time_layer = text_layer_create(GRect(0, 0, 144, 168));
@@ -207,6 +219,11 @@ static void main_window_unload(Window *window) {
   // cancel any remaining timers
   app_timer_cancel(s_cursor_timer);
   app_timer_cancel(s_dir_timer);
+
+  // unsubscribe from Event Services
+  tick_timer_service_unsubscribe();
+  accel_tap_service_unsubscribe();
+  bluetooth_connection_service_unsubscribe();
 
   // Destroy TextLayer
   text_layer_destroy(s_time_layer);
@@ -340,6 +357,9 @@ static void init() {
 
   // Register with Tap Event Service
   accel_tap_service_subscribe(tap_handler);
+
+  // Register with Bluetooth Connection Service
+  bluetooth_connection_service_subscribe(bt_handler);
 }
 
 static void deinit() {

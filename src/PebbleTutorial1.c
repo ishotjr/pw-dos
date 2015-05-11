@@ -7,11 +7,11 @@
 static const char WHATS_NEW_TEXT_01[] = "+----------------+\n";
 static const char WHATS_NEW_TEXT_02[] = "| ? WHAT'S NEW ? |\n";
 static const char WHATS_NEW_TEXT_03[] = "+----------------+\n";
-static const char WHATS_NEW_TEXT_04[] = "| 528 nm P1      |\n";
-static const char WHATS_NEW_TEXT_05[] = "| phosphor green |\n";
-static const char WHATS_NEW_TEXT_06[] = "| for Pebble     |\n";
-static const char WHATS_NEW_TEXT_07[] = "| Time users! :D |\n";
-static const char WHATS_NEW_TEXT_08[] = "|                |\n";
+static const char WHATS_NEW_TEXT_04[] = "| Vibration on   |\n";
+static const char WHATS_NEW_TEXT_05[] = "| Bluetooth      |\n";
+static const char WHATS_NEW_TEXT_06[] = "| disconnection  |\n";
+static const char WHATS_NEW_TEXT_07[] = "| and connection |\n";
+static const char WHATS_NEW_TEXT_08[] = "| plus more! ;)  |\n";
 static const char WHATS_NEW_TEXT_09[] = "+----------------+\n";
 static const char WHATS_NEW_TEXT_10[] = "| Please shake   |\n";
 static const char WHATS_NEW_TEXT_11[] = "| to dismiss...  |\n";

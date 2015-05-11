@@ -1,7 +1,7 @@
 #include <pebble.h>
 
 // TODO: update with each release (major + zero-padded minor version)
-#define VERSION_CODE 106  // v1.6
+#define VERSION_CODE 107  // v1.7
 
 // broken into rows for easier editing
 static const char WHATS_NEW_TEXT_01[] = "+----------------+\n";
@@ -84,6 +84,8 @@ static void update_time(int frame) {
       strftime(buffer, BUFFER_SIZE, "\n 3 files %j bytes\n %U bytes free\n\nC:\\>DIR\nPW-DOS %d.%m\nCopyright (c) %Y\n\nAUTOEXEC BAT %H:%M\nCOMMAND  COM %H:%M\nCONFIG   SYS %H:%M", tick_time);    
   else if (frame == 6)
       strftime(buffer, BUFFER_SIZE, "C:\\>DIR\n\n\nPW-DOS %d.%m\nCopyright (c) %Y\n\nAUTOEXEC BAT %H:%M\nCOMMAND  COM %H:%M\nCONFIG   SYS %H:%M\n 3 files %j bytes\n %U bytes free", tick_time);    
+  else if (frame == -1)
+      strftime(buffer, BUFFER_SIZE, "\nNot ready reading drive B at %H:%M\n\nAbort,Retry,Fail?", tick_time);    
   else {
       // set "regular" screen again for remainder of the minute
       strftime(buffer, BUFFER_SIZE, "PW-DOS %d.%m\nCopyright (c) %Y\n\nAUTOEXEC BAT %H:%M\nCOMMAND  COM %H:%M\nCONFIG   SYS %H:%M\n 3 files %j bytes\n %U bytes free\n\nC:\\>", tick_time);    
@@ -167,12 +169,36 @@ static void tap_handler(AccelAxisType axis, int32_t direction) {
 
 
 void bt_handler(bool connected) {
-  // vibrate twice quickly on BT disconnect, once/long on connect
+  // vibrate twice quickly on BT disconnect/connect
   if (connected) {
-    vibes_long_pulse();
+    vibes_double_pulse();
+
+    // RE-Register with TickTimerService
+    tick_timer_service_subscribe(MINUTE_UNIT, tick_handler);
+  
+    // RE-Register with Tap Event Service
+    accel_tap_service_subscribe(tap_handler);
+
     //APP_LOG(APP_LOG_LEVEL_INFO, "Phone is connected!");
   } else {
+    // cancel any remaining timers
+    app_timer_cancel(s_cursor_timer);
+    app_timer_cancel(s_dir_timer);
+
+    // disable TickTimerService until reconnection
+    tick_timer_service_unsubscribe();
+
+    // disable Tap Event Service until reconnection
+    accel_tap_service_unsubscribe();
+
     vibes_double_pulse();
+
+    // hide cursor in case lit
+    layer_set_hidden((Layer *)s_cursor_layer, true);
+
+    // visually alert user of disconnect status
+    update_time(-1);
+
     //APP_LOG(APP_LOG_LEVEL_INFO, "Phone is not connected!");
   }
 }

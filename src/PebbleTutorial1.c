@@ -7,11 +7,11 @@
 static const char WHATS_NEW_TEXT_01[] = "+----------------+\n";
 static const char WHATS_NEW_TEXT_02[] = "| ? WHAT'S NEW ? |\n";
 static const char WHATS_NEW_TEXT_03[] = "+----------------+\n";
-static const char WHATS_NEW_TEXT_04[] = "| Vibration on   |\n";
-static const char WHATS_NEW_TEXT_05[] = "| Bluetooth      |\n";
-static const char WHATS_NEW_TEXT_06[] = "| disconnection  |\n";
-static const char WHATS_NEW_TEXT_07[] = "| and connection |\n";
-static const char WHATS_NEW_TEXT_08[] = "| plus more! ;)  |\n";
+static const char WHATS_NEW_TEXT_04[] = "| Check out our  |\n";
+static const char WHATS_NEW_TEXT_05[] = "| original retro |\n";
+static const char WHATS_NEW_TEXT_06[] = "| watchface:     |\n";
+static const char WHATS_NEW_TEXT_07[] = "| PW-DOS! :)     |\n";
+static const char WHATS_NEW_TEXT_08[] = "|                |\n";
 static const char WHATS_NEW_TEXT_09[] = "+----------------+\n";
 static const char WHATS_NEW_TEXT_10[] = "| Please shake   |\n";
 static const char WHATS_NEW_TEXT_11[] = "| to dismiss...  |\n";
@@ -72,23 +72,23 @@ static void update_time(int frame) {
 
   // fake DIR "typing"
   if (frame == 1)
-      strftime(buffer, BUFFER_SIZE, "PW-DOS %d.%m\nCopyright (c) %Y\n\nAUTOEXEC BAT %H:%M\nCOMMAND  COM %H:%M\nCONFIG   SYS %H:%M\n 3 files %j bytes\n %U bytes free\n\nC:\\>D", tick_time);    
+      strftime(buffer, BUFFER_SIZE, "The Cardiff PC\n\nDOS Version %d.%m\n(c) Cardiff %Y\n\nAUTOEXEC BAT %H:%M\nCOMMAND  COM %H:%M\nCONFIG   SYS %H:%M\n 3 files %j bytes\n %U bytes free\n\nC>D", tick_time);    
   else if (frame == 2)
-      strftime(buffer, BUFFER_SIZE, "PW-DOS %d.%m\nCopyright (c) %Y\n\nAUTOEXEC BAT %H:%M\nCOMMAND  COM %H:%M\nCONFIG   SYS %H:%M\n 3 files %j bytes\n %U bytes free\n\nC:\\>DI", tick_time);    
+      strftime(buffer, BUFFER_SIZE, "The Cardiff PC\n\nDOS Version %d.%m\n(c) Cardiff %Y\n\nAUTOEXEC BAT %H:%M\nCOMMAND  COM %H:%M\nCONFIG   SYS %H:%M\n 3 files %j bytes\n %U bytes free\n\nC>DI", tick_time);    
   else if (frame == 3)
-      strftime(buffer, BUFFER_SIZE, "PW-DOS %d.%m\nCopyright (c) %Y\n\nAUTOEXEC BAT %H:%M\nCOMMAND  COM %H:%M\nCONFIG   SYS %H:%M\n 3 files %j bytes\n %U bytes free\n\nC:\\>DIR", tick_time);    
+      strftime(buffer, BUFFER_SIZE, "The Cardiff PC\n\nDOS Version %d.%m\n(c) Cardiff %Y\n\nAUTOEXEC BAT %H:%M\nCOMMAND  COM %H:%M\nCONFIG   SYS %H:%M\n 3 files %j bytes\n %U bytes free\n\nC>DIR", tick_time);    
   // fake "scroll" after DIR
   else if (frame == 4)
-      strftime(buffer, BUFFER_SIZE, "AUTOEXEC BAT %H:%M\nCOMMAND  COM %H:%M\nCONFIG   SYS %H:%M\n 3 files %j bytes\n %U bytes free\n\nC:\\>DIR\nPW-DOS %d.%m\nCopyright (c) %Y\n\n", tick_time);    
+      strftime(buffer, BUFFER_SIZE, "AUTOEXEC BAT %H:%M\nCOMMAND  COM %H:%M\nCONFIG   SYS %H:%M\n 3 files %j bytes\n %U bytes free\n\nC>DIR\nThe Cardiff PC\n\nDOS Version %d.%m\n(c) Cardiff %Y\n\n", tick_time);    
   else if (frame == 5)
-      strftime(buffer, BUFFER_SIZE, "\n 3 files %j bytes\n %U bytes free\n\nC:\\>DIR\nPW-DOS %d.%m\nCopyright (c) %Y\n\nAUTOEXEC BAT %H:%M\nCOMMAND  COM %H:%M\nCONFIG   SYS %H:%M", tick_time);    
+      strftime(buffer, BUFFER_SIZE, "\n 3 files %j bytes\n %U bytes free\n\nC>DIR\nThe Cardiff PC\n\nDOS Version %d.%m\n(c) Cardiff %Y\n\nAUTOEXEC BAT %H:%M\nCOMMAND  COM %H:%M\nCONFIG   SYS %H:%M", tick_time);    
   else if (frame == 6)
-      strftime(buffer, BUFFER_SIZE, "C:\\>DIR\n\n\nPW-DOS %d.%m\nCopyright (c) %Y\n\nAUTOEXEC BAT %H:%M\nCOMMAND  COM %H:%M\nCONFIG   SYS %H:%M\n 3 files %j bytes\n %U bytes free", tick_time);    
+      strftime(buffer, BUFFER_SIZE, "C>DIR\nThe Cardiff PC\n\nDOS Version %d.%m\n(c) Cardiff %Y\n\nAUTOEXEC BAT %H:%M\nCOMMAND  COM %H:%M\nCONFIG   SYS %H:%M\n 3 files %j bytes\n %U bytes free", tick_time);    
   else if (frame == -1)
       strftime(buffer, BUFFER_SIZE, "\nNot ready reading drive B at %H:%M\n\nAbort,Retry,Fail?", tick_time);    
   else {
       // set "regular" screen again for remainder of the minute
-      strftime(buffer, BUFFER_SIZE, "PW-DOS %d.%m\nCopyright (c) %Y\n\nAUTOEXEC BAT %H:%M\nCOMMAND  COM %H:%M\nCONFIG   SYS %H:%M\n 3 files %j bytes\n %U bytes free\n\nC:\\>", tick_time);    
+      strftime(buffer, BUFFER_SIZE, "The Cardiff PC\n\nDOS Version %d.%m\n(c) Cardiff %Y\n\nAUTOEXEC BAT %H:%M\nCOMMAND  COM %H:%M\nCONFIG   SYS %H:%M\n 3 files %j bytes\n %U bytes free\n\nC>", tick_time);    
       //layer_set_hidden((Layer *)s_cursor_layer, false);
   }
 
@@ -222,7 +222,7 @@ static void main_window_load(Window *window) {
 
   // crude hack to mitigate sudden deprecation of InverterLayer in dp9
   // TODO: replace!
-  s_cursor_layer = text_layer_create(GRect(32, 141, 7, 1));
+  s_cursor_layer = text_layer_create(GRect(16, 167, 7, 1));
 
   text_layer_set_background_color(s_cursor_layer, FOREGROUND_COLOR);
 

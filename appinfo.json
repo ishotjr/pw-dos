@@ -4,7 +4,7 @@
   "longName": "Cardiff Giant Watchface",
   "companyName": "ishotjr.com",
   "versionCode": 1,
-  "versionLabel": "1.7",
+  "versionLabel": "1.8",
   "sdkVersion": "3",
   "targetPlatforms": ["aplite", "basalt"],
   "watchapp": {
@@ -25,6 +25,16 @@
       "type": "font",
       "name": "FONT_PERFECT_DOS_14",
       "file": "fonts/perfect-dos-vga.ttf"
+    },
+    {
+      "type": "png",
+      "name": "GIANT_SPLASH_APLITE",
+      "file": "images/cardiff-giant-144-168-aplite.png"
+    },
+    {
+      "type": "png",
+      "name": "GIANT_SPLASH_BASALT",
+      "file": "images/cardiff-giant-144-168-basalt.png"
     },
     {
       "type": "png",

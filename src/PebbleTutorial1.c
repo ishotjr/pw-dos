@@ -72,17 +72,17 @@ static void update_time(int frame) {
 
   // fake Date "typing"
   if (frame == 1)
-      strftime(buffer, BUFFER_SIZE, "Pebble Basalt tty1\nPWT-BASH\n\nwatch@basalt:~$ d", tick_time); 
+      strftime(buffer, BUFFER_SIZE, "pebble OS basalt tty1\nPWT-BASH\n\nwatch@basalt:~$ d", tick_time); 
   else if (frame == 2)
-      strftime(buffer, BUFFER_SIZE, "Pebble Basalt tty1\nPWT-BASH\n\nwatch@basalt:~$ da", tick_time);    
+      strftime(buffer, BUFFER_SIZE, "pebble OS basalt tty1\nPWT-BASH\n\nwatch@basalt:~$ da", tick_time);    
   else if (frame == 3)
-      strftime(buffer, BUFFER_SIZE, "Pebble Basalt tty1\nPWT-BASH\n\nwatch@basalt:~$ dat", tick_time);
+      strftime(buffer, BUFFER_SIZE, "pebble OS basalt tty1\nPWT-BASH\n\nwatch@basalt:~$ dat", tick_time);
   else if (frame == 4)
       
-      strftime(buffer, BUFFER_SIZE, "Pebble Basalt tty1\nPWT-BASH\n\nwatch@basalt:~$ date\n%a %b %d\n%T\n", tick_time);           
+      strftime(buffer, BUFFER_SIZE, "pebble OS basalt tty1\nPWT-BASH\n\nwatch@basalt:~$ date\n%a %b %d %T\n", tick_time);           
   else {
       // set "regular" screen again for remainder of the minute
-      strftime(buffer, BUFFER_SIZE, "Pebble Basalt tty1\nPWT-BASH\n\nwatch@basalt:~$ date\n%a %b %d\n%T\n", tick_time);  
+      strftime(buffer, BUFFER_SIZE, "pebble OS basalt tty1\nPWT-BASH\n\nwatch@basalt:~$ date\n%a %b %d %T\n", tick_time);  
       //layer_set_hidden((Layer *)s_cursor_layer, false);
   }
 
@@ -102,7 +102,7 @@ static void dir_timer_callback(void *data) {
   update_time(++s_dir_frame_count);
 
   // call again every 0.5s until 6th frame displayed, then reset to 0 and stop calling
-  if (s_dir_frame_count <= 4) {
+  if (s_dir_frame_count <= 5) {
     s_dir_timer = app_timer_register(500, (AppTimerCallback) dir_timer_callback, NULL);
   } else {
     s_dir_frame_count = 0;
@@ -207,7 +207,7 @@ static void main_window_load(Window *window) {
   text_layer_set_overflow_mode(s_time_layer, GTextOverflowModeTrailingEllipsis);
 
   // Create GFont
-  s_time_font = fonts_load_custom_font(resource_get_handle(RESOURCE_ID_FONT_CONSOLE));
+  s_time_font = fonts_load_custom_font(resource_get_handle(RESOURCE_ID_FONT_CONSOLE_12));
 
   // Apply to TextLayer
   text_layer_set_font(s_time_layer, s_time_font);

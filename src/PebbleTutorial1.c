@@ -70,25 +70,19 @@ static void update_time(int frame) {
 
   // TODO: this is horrendous/just very rough a prototype - refactor ASAP!
 
-  // fake DIR "typing"
+  // fake Date "typing"
   if (frame == 1)
-      strftime(buffer, BUFFER_SIZE, "PW-DOS %d.%m\nCopyright (c) %Y\n\nAUTOEXEC BAT %H:%M\nCOMMAND  COM %H:%M\nCONFIG   SYS %H:%M\n 3 files %j bytes\n %U bytes free\n\nC:\\>D", tick_time);    
+      strftime(buffer, BUFFER_SIZE, "Pebble Basalt tty1\nPWT-BASH\n\nwatch@basalt:~$ d", tick_time); 
   else if (frame == 2)
-      strftime(buffer, BUFFER_SIZE, "PW-DOS %d.%m\nCopyright (c) %Y\n\nAUTOEXEC BAT %H:%M\nCOMMAND  COM %H:%M\nCONFIG   SYS %H:%M\n 3 files %j bytes\n %U bytes free\n\nC:\\>DI", tick_time);    
+      strftime(buffer, BUFFER_SIZE, "Pebble Basalt tty1\nPWT-BASH\n\nwatch@basalt:~$ da", tick_time);    
   else if (frame == 3)
-      strftime(buffer, BUFFER_SIZE, "PW-DOS %d.%m\nCopyright (c) %Y\n\nAUTOEXEC BAT %H:%M\nCOMMAND  COM %H:%M\nCONFIG   SYS %H:%M\n 3 files %j bytes\n %U bytes free\n\nC:\\>DIR", tick_time);    
-  // fake "scroll" after DIR
+      strftime(buffer, BUFFER_SIZE, "Pebble Basalt tty1\nPWT-BASH\n\nwatch@basalt:~$ dat", tick_time);
   else if (frame == 4)
-      strftime(buffer, BUFFER_SIZE, "AUTOEXEC BAT %H:%M\nCOMMAND  COM %H:%M\nCONFIG   SYS %H:%M\n 3 files %j bytes\n %U bytes free\n\nC:\\>DIR\nPW-DOS %d.%m\nCopyright (c) %Y\n\n", tick_time);    
-  else if (frame == 5)
-      strftime(buffer, BUFFER_SIZE, "\n 3 files %j bytes\n %U bytes free\n\nC:\\>DIR\nPW-DOS %d.%m\nCopyright (c) %Y\n\nAUTOEXEC BAT %H:%M\nCOMMAND  COM %H:%M\nCONFIG   SYS %H:%M", tick_time);    
-  else if (frame == 6)
-      strftime(buffer, BUFFER_SIZE, "C:\\>DIR\n\n\nPW-DOS %d.%m\nCopyright (c) %Y\n\nAUTOEXEC BAT %H:%M\nCOMMAND  COM %H:%M\nCONFIG   SYS %H:%M\n 3 files %j bytes\n %U bytes free", tick_time);    
-  else if (frame == -1)
-      strftime(buffer, BUFFER_SIZE, "\nNot ready reading drive B at %H:%M\n\nAbort,Retry,Fail?", tick_time);    
+      
+      strftime(buffer, BUFFER_SIZE, "Pebble Basalt tty1\nPWT-BASH\n\nwatch@basalt:~$ date\n%a %b %d\n%T\n", tick_time);           
   else {
       // set "regular" screen again for remainder of the minute
-      strftime(buffer, BUFFER_SIZE, "PW-DOS %d.%m\nCopyright (c) %Y\n\nAUTOEXEC BAT %H:%M\nCOMMAND  COM %H:%M\nCONFIG   SYS %H:%M\n 3 files %j bytes\n %U bytes free\n\nC:\\>", tick_time);    
+      strftime(buffer, BUFFER_SIZE, "Pebble Basalt tty1\nPWT-BASH\n\nwatch@basalt:~$ date\n%a %b %d\n%T\n", tick_time);  
       //layer_set_hidden((Layer *)s_cursor_layer, false);
   }
 

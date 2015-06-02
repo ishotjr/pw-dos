@@ -102,7 +102,7 @@ static void dir_timer_callback(void *data) {
   update_time(++s_dir_frame_count);
 
   // call again every 0.5s until 6th frame displayed, then reset to 0 and stop calling
-  if (s_dir_frame_count <= 6) {
+  if (s_dir_frame_count <= 4) {
     s_dir_timer = app_timer_register(500, (AppTimerCallback) dir_timer_callback, NULL);
   } else {
     s_dir_frame_count = 0;

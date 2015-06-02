@@ -20,6 +20,11 @@
       "name": "FONT_PERFECT_DOS_14",
       "file": "fonts/perfect-dos-vga.ttf"
     },
+     {
+      "type": "font",
+      "name": "FONT_CONSOLE",
+      "file": "fonts/inconsolata.ttf"
+    },
     {
       "type": "png",
       "name": "STARMAN",

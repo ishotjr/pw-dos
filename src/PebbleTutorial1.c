@@ -207,7 +207,7 @@ static void main_window_load(Window *window) {
   text_layer_set_overflow_mode(s_time_layer, GTextOverflowModeTrailingEllipsis);
 
   // Create GFont
-  s_time_font = fonts_load_custom_font(resource_get_handle(RESOURCE_ID_FONT_PERFECT_DOS_14));
+  s_time_font = fonts_load_custom_font(resource_get_handle(RESOURCE_ID_FONT_CONSOLE));
 
   // Apply to TextLayer
   text_layer_set_font(s_time_layer, s_time_font);

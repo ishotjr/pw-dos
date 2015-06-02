@@ -70,25 +70,19 @@ static void update_time(int frame) {
 
   // TODO: this is horrendous/just very rough a prototype - refactor ASAP!
 
-  // fake DIR "typing"
+  // fake Date "typing"
   if (frame == 1)
-      strftime(buffer, BUFFER_SIZE, "PW-DOS %d.%m\nCopyright (c) %Y\n\nAUTOEXEC BAT %H:%M\nCOMMAND  COM %H:%M\nCONFIG   SYS %H:%M\n 3 files %j bytes\n %U bytes free\n\nC:\\>D", tick_time);    
+      strftime(buffer, BUFFER_SIZE, "pebble OS basalt tty1\nPWT-BASH\n\nwatch@basalt:~$ d", tick_time); 
   else if (frame == 2)
-      strftime(buffer, BUFFER_SIZE, "PW-DOS %d.%m\nCopyright (c) %Y\n\nAUTOEXEC BAT %H:%M\nCOMMAND  COM %H:%M\nCONFIG   SYS %H:%M\n 3 files %j bytes\n %U bytes free\n\nC:\\>DI", tick_time);    
+      strftime(buffer, BUFFER_SIZE, "pebble OS basalt tty1\nPWT-BASH\n\nwatch@basalt:~$ da", tick_time);    
   else if (frame == 3)
-      strftime(buffer, BUFFER_SIZE, "PW-DOS %d.%m\nCopyright (c) %Y\n\nAUTOEXEC BAT %H:%M\nCOMMAND  COM %H:%M\nCONFIG   SYS %H:%M\n 3 files %j bytes\n %U bytes free\n\nC:\\>DIR", tick_time);    
-  // fake "scroll" after DIR
+      strftime(buffer, BUFFER_SIZE, "pebble OS basalt tty1\nPWT-BASH\n\nwatch@basalt:~$ dat", tick_time);
   else if (frame == 4)
-      strftime(buffer, BUFFER_SIZE, "AUTOEXEC BAT %H:%M\nCOMMAND  COM %H:%M\nCONFIG   SYS %H:%M\n 3 files %j bytes\n %U bytes free\n\nC:\\>DIR\nPW-DOS %d.%m\nCopyright (c) %Y\n\n", tick_time);    
-  else if (frame == 5)
-      strftime(buffer, BUFFER_SIZE, "\n 3 files %j bytes\n %U bytes free\n\nC:\\>DIR\nPW-DOS %d.%m\nCopyright (c) %Y\n\nAUTOEXEC BAT %H:%M\nCOMMAND  COM %H:%M\nCONFIG   SYS %H:%M", tick_time);    
-  else if (frame == 6)
-      strftime(buffer, BUFFER_SIZE, "C:\\>DIR\n\n\nPW-DOS %d.%m\nCopyright (c) %Y\n\nAUTOEXEC BAT %H:%M\nCOMMAND  COM %H:%M\nCONFIG   SYS %H:%M\n 3 files %j bytes\n %U bytes free", tick_time);    
-  else if (frame == -1)
-      strftime(buffer, BUFFER_SIZE, "\nNot ready reading drive B at %H:%M\n\nAbort,Retry,Fail?", tick_time);    
+      
+      strftime(buffer, BUFFER_SIZE, "pebble OS basalt tty1\nPWT-BASH\n\nwatch@basalt:~$ date\n%a %b %d %T\n", tick_time);           
   else {
       // set "regular" screen again for remainder of the minute
-      strftime(buffer, BUFFER_SIZE, "PW-DOS %d.%m\nCopyright (c) %Y\n\nAUTOEXEC BAT %H:%M\nCOMMAND  COM %H:%M\nCONFIG   SYS %H:%M\n 3 files %j bytes\n %U bytes free\n\nC:\\>", tick_time);    
+      strftime(buffer, BUFFER_SIZE, "pebble OS basalt tty1\nPWT-BASH\n\nwatch@basalt:~$ date\n%a %b %d %T\n", tick_time);  
       //layer_set_hidden((Layer *)s_cursor_layer, false);
   }
 
@@ -108,7 +102,7 @@ static void dir_timer_callback(void *data) {
   update_time(++s_dir_frame_count);
 
   // call again every 0.5s until 6th frame displayed, then reset to 0 and stop calling
-  if (s_dir_frame_count <= 6) {
+  if (s_dir_frame_count <= 5) {
     s_dir_timer = app_timer_register(500, (AppTimerCallback) dir_timer_callback, NULL);
   } else {
     s_dir_frame_count = 0;
@@ -213,7 +207,7 @@ static void main_window_load(Window *window) {
   text_layer_set_overflow_mode(s_time_layer, GTextOverflowModeTrailingEllipsis);
 
   // Create GFont
-  s_time_font = fonts_load_custom_font(resource_get_handle(RESOURCE_ID_FONT_PERFECT_DOS_14));
+  s_time_font = fonts_load_custom_font(resource_get_handle(RESOURCE_ID_FONT_CONSOLE_12));
 
   // Apply to TextLayer
   text_layer_set_font(s_time_layer, s_time_font);

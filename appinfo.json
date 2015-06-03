@@ -29,6 +29,11 @@
       "type": "png",
       "name": "STARMAN",
       "file": "images/starman.png"
+    },
+    {
+      "type": "png",
+      "name": "TUX",
+      "file": "images/tux.png"
     }
     ]
   }

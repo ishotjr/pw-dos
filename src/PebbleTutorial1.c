@@ -51,11 +51,13 @@ static AppTimer *s_cursor_timer;
 static int s_dir_frame_count = 0;
 static AppTimer *s_dir_timer;
 
+static AppTimer *s_splash_timer;
+
 // persistent storage version (i.e. app version at last write)
 static int s_storage_version_code = 0;
 
-// static BitmapLayer *s_starman_layer;
-// static GBitmap *s_starman_bitmap;
+static BitmapLayer *s_tux_splash_layer;
+static GBitmap *s_tux_splash_bitmap;
 
 static void update_time(int frame) {
   // Get a tm structure
@@ -136,6 +138,11 @@ static void cursor_timer_callback(void *data) {
     s_cursor_blink_count = 0;
   }
 
+}
+
+static void splash_timer_callback(void *data) {
+  // hide splash after 3s
+  layer_set_hidden((Layer *)s_tux_splash_layer, true);
 }
 
 static void tap_handler(AccelAxisType axis, int32_t direction) {
@@ -228,11 +235,13 @@ static void main_window_load(Window *window) {
   // Add it as a child layer to the Window's root layer
   layer_add_child(window_get_root_layer(window), text_layer_get_layer(s_time_layer));
 
-  // // Create GBitmap, then set to created BitmapLayer
-  // s_starman_bitmap = gbitmap_create_with_resource(RESOURCE_ID_STARMAN);
-  // s_starman_layer = bitmap_layer_create(GRect(104, 128, 40, 40));
-  // bitmap_layer_set_bitmap(s_starman_layer, s_starman_bitmap);
-  // layer_add_child(window_get_root_layer(window), bitmap_layer_get_layer(s_starman_layer));
+  // load splash
+
+  // Create GBitmap, then set to created BitmapLayer
+  s_tux_splash_bitmap = gbitmap_create_with_resource(RESOURCE_ID_TUX);
+  s_tux_splash_layer = bitmap_layer_create(GRect(0, 0, 144, 168));
+  bitmap_layer_set_bitmap(s_tux_splash_layer, s_tux_splash_bitmap);
+  layer_add_child(window_get_root_layer(window), bitmap_layer_get_layer(s_tux_splash_layer));
 }
 
 static void main_window_unload(Window *window) {
@@ -255,10 +264,10 @@ static void main_window_unload(Window *window) {
   fonts_unload_custom_font(s_time_font);
 
   // // Destroy GBitmap
-  // gbitmap_destroy(s_starman_bitmap);
+  gbitmap_destroy(s_tux_splash_bitmap);
 
   // // Destroy BitmapLayer
-  // bitmap_layer_destroy(s_starman_layer);
+  bitmap_layer_destroy(s_tux_splash_layer);
 }
 
 
@@ -296,6 +305,9 @@ static void whats_new_window_load(Window *window) {
 static void whats_new_window_unload(Window *window) {
   // Destroy TextLayer
   text_layer_destroy(s_whats_new_layer);
+
+  // start splash timer
+  s_splash_timer = app_timer_register(3 * 1000, (AppTimerCallback) splash_timer_callback, NULL);
 }
 
 
@@ -366,6 +378,9 @@ static void init() {
     });
 
     window_stack_push(s_whats_new_window, true);
+  } else {
+    // start splash timer
+    s_splash_timer = app_timer_register(3 * 1000, (AppTimerCallback) splash_timer_callback, NULL);
   }
 
   // Make sure the time is displayed from the start

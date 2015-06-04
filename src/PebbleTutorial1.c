@@ -82,8 +82,9 @@ static void update_time(int frame) {
   else if (frame == 3)
       strftime(buffer, BUFFER_SIZE, "pebble OS tty1\nPW-BASH\n\nwatch@basalt:~$ dat", tick_time);
   else if (frame == 4)
-      
       strftime(buffer, BUFFER_SIZE, "pebble OS tty1\nPW-BASH\n\nwatch@basalt:~$ date\n%a %b %d %T\n", tick_time);           
+  else if (frame == -1)
+      strftime(buffer, BUFFER_SIZE, "Bluetooth Disconnect\n", tick_time);
   else {
       // set "regular" screen again for remainder of the minute
       strftime(buffer, BUFFER_SIZE, "pebble OS tty1\nPW-BASH\n\nwatch@basalt:~$ date\n%a %b %d %T\n", tick_time);  

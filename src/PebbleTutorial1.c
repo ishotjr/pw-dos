@@ -15,17 +15,19 @@ static const char WHATS_NEW_TEXT_08[] = "| plus more! ;)  |\n";
 static const char WHATS_NEW_TEXT_09[] = "+----------------+\n";
 static const char WHATS_NEW_TEXT_10[] = "| Please shake   |\n";
 static const char WHATS_NEW_TEXT_11[] = "| to dismiss...  |\n";
-static const char WHATS_NEW_TEXT_12[] = "+----------------+\n";
+static const char WHATS_NEW_TEXT_12[] = "+----------------+";
 
 // persistent storage keys
 #define STORAGE_VERSION_CODE_KEY 1
 
-
 // set text/cursor to P1 phosphor green on hardware that supports 64 colors, otherwise revert to white
+// select correct splash
 #ifdef PBL_COLOR
 #define FOREGROUND_COLOR GColorFromHEX(0x56ff00)
+#define TUX_SPLASH RESOURCE_ID_TUX
 #else
 #define FOREGROUND_COLOR GColorWhite
+#define TUX_SPLASH RESOURCE_ID_TUX_BW
 #endif
 
 // (18 + \n)x12+\0
@@ -74,17 +76,17 @@ static void update_time(int frame) {
 
   // fake Date "typing"
   if (frame == 1)
-      strftime(buffer, BUFFER_SIZE, "pebble OS basalt tty1\nPWT-BASH\n\nwatch@basalt:~$ d", tick_time); 
+      strftime(buffer, BUFFER_SIZE, "pebble OS tty1\nPW-BASH\n\nwatch@basalt:~$ d", tick_time); 
   else if (frame == 2)
-      strftime(buffer, BUFFER_SIZE, "pebble OS basalt tty1\nPWT-BASH\n\nwatch@basalt:~$ da", tick_time);    
+      strftime(buffer, BUFFER_SIZE, "pebble OS tty1\nPW-BASH\n\nwatch@basalt:~$ da", tick_time);    
   else if (frame == 3)
-      strftime(buffer, BUFFER_SIZE, "pebble OS basalt tty1\nPWT-BASH\n\nwatch@basalt:~$ dat", tick_time);
+      strftime(buffer, BUFFER_SIZE, "pebble OS tty1\nPW-BASH\n\nwatch@basalt:~$ dat", tick_time);
   else if (frame == 4)
       
-      strftime(buffer, BUFFER_SIZE, "pebble OS basalt tty1\nPWT-BASH\n\nwatch@basalt:~$ date\n%a %b %d %T\n", tick_time);           
+      strftime(buffer, BUFFER_SIZE, "pebble OS tty1\nPW-BASH\n\nwatch@basalt:~$ date\n%a %b %d %T\n", tick_time);           
   else {
       // set "regular" screen again for remainder of the minute
-      strftime(buffer, BUFFER_SIZE, "pebble OS basalt tty1\nPWT-BASH\n\nwatch@basalt:~$ date\n%a %b %d %T\n", tick_time);  
+      strftime(buffer, BUFFER_SIZE, "pebble OS tty1\nPW-BASH\n\nwatch@basalt:~$ date\n%a %b %d %T\n", tick_time);  
       //layer_set_hidden((Layer *)s_cursor_layer, false);
   }
 
@@ -114,7 +116,7 @@ static void dir_timer_callback(void *data) {
 
 static void tick_handler(struct tm *tick_time, TimeUnits units_changed) {
   // set up DIR timer for :57
-  s_dir_timer = app_timer_register(57 * 1000, (AppTimerCallback) dir_timer_callback, NULL);
+  s_dir_timer = app_timer_register(56 * 1000, (AppTimerCallback) dir_timer_callback, NULL);
 
   update_time(0);
 }
@@ -238,7 +240,7 @@ static void main_window_load(Window *window) {
   // load splash
 
   // Create GBitmap, then set to created BitmapLayer
-  s_tux_splash_bitmap = gbitmap_create_with_resource(RESOURCE_ID_TUX);
+  s_tux_splash_bitmap = gbitmap_create_with_resource(TUX_SPLASH);
   s_tux_splash_layer = bitmap_layer_create(GRect(0, 0, 144, 168));
   bitmap_layer_set_bitmap(s_tux_splash_layer, s_tux_splash_bitmap);
   layer_add_child(window_get_root_layer(window), bitmap_layer_get_layer(s_tux_splash_layer));

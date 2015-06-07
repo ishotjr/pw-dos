@@ -4,18 +4,18 @@
 #define VERSION_CODE 107  // v1.7
 
 // broken into rows for easier editing
-static const char WHATS_NEW_TEXT_01[] = "+----------------+\n";
-static const char WHATS_NEW_TEXT_02[] = "| ? WHAT'S NEW ? |\n";
-static const char WHATS_NEW_TEXT_03[] = "+----------------+\n";
-static const char WHATS_NEW_TEXT_04[] = "| Vibration on   |\n";
-static const char WHATS_NEW_TEXT_05[] = "| Bluetooth      |\n";
-static const char WHATS_NEW_TEXT_06[] = "| disconnection  |\n";
-static const char WHATS_NEW_TEXT_07[] = "| and connection |\n";
-static const char WHATS_NEW_TEXT_08[] = "| plus more! ;)  |\n";
-static const char WHATS_NEW_TEXT_09[] = "+----------------+\n";
-static const char WHATS_NEW_TEXT_10[] = "| Please shake   |\n";
-static const char WHATS_NEW_TEXT_11[] = "| to dismiss...  |\n";
-static const char WHATS_NEW_TEXT_12[] = "+----------------+";
+static const char WHATS_NEW_TEXT_01[] = "+------------------+\n";
+static const char WHATS_NEW_TEXT_02[] = "|  ? WHAT'S NEW ?  |\n";
+static const char WHATS_NEW_TEXT_03[] = "+------------------+\n";
+static const char WHATS_NEW_TEXT_04[] = "|  Vibration on    |\n";
+static const char WHATS_NEW_TEXT_05[] = "|  Bluetooth       |\n";
+static const char WHATS_NEW_TEXT_06[] = "|  disconnection   |\n";
+static const char WHATS_NEW_TEXT_07[] = "|  and connection  |\n";
+static const char WHATS_NEW_TEXT_08[] = "|  plus more! ;)   |\n";
+static const char WHATS_NEW_TEXT_09[] = "+------------------+\n";
+static const char WHATS_NEW_TEXT_10[] = "|  Please shake    |\n";
+static const char WHATS_NEW_TEXT_11[] = "|  to dismiss...   |\n";
+static const char WHATS_NEW_TEXT_12[] = "+------------------+";
 
 // persistent storage keys
 #define STORAGE_VERSION_CODE_KEY 1
@@ -82,12 +82,12 @@ static void update_time(int frame) {
   else if (frame == 3)
       strftime(buffer, BUFFER_SIZE, "pebble OS tty1\nPW-BASH\n\nwatch@basalt:~$ dat", tick_time);
   else if (frame == 4)
-      strftime(buffer, BUFFER_SIZE, "pebble OS tty1\nPW-BASH\n\nwatch@basalt:~$ date\n%a %b %d %T\n", tick_time);           
+      strftime(buffer, BUFFER_SIZE, "pebble OS tty1\nPW-BASH\n\nwatch@basalt:~$ date\n%a %b %d %T\nwatch@basalt:~$ ", tick_time);           
   else if (frame == -1)
       strftime(buffer, BUFFER_SIZE, "Bluetooth Disconnect\n", tick_time);
   else {
       // set "regular" screen again for remainder of the minute
-      strftime(buffer, BUFFER_SIZE, "pebble OS tty1\nPW-BASH\n\nwatch@basalt:~$ date\n%a %b %d %T\n", tick_time);  
+      strftime(buffer, BUFFER_SIZE, "pebble OS tty1\nPW-BASH\n\nwatch@basalt:~$ date\n%a %b %d %T\nwatch@basalt:~$ ", tick_time);  
       //layer_set_hidden((Layer *)s_cursor_layer, false);
   }
 

@@ -4,7 +4,7 @@
   "longName": "PW-DOS Command Line Watchface",
   "companyName": "ishotjr.com",
   "versionCode": 1,
-  "versionLabel": "1.7",
+  "versionLabel": "1.8",
   "sdkVersion": "3",
   "targetPlatforms": ["aplite", "basalt"],
   "watchapp": {
@@ -16,9 +16,25 @@
   "resources": {
     "media": [
     {
+      "menuIcon": true,
+      "type": "png",
+      "name": "IMAGE_MENU_ICON",
+      "file": "images/pw-dos-28.png"
+    },
+    {
       "type": "font",
       "name": "FONT_PERFECT_DOS_14",
       "file": "fonts/perfect-dos-vga.ttf"
+    },
+    {
+      "type": "png",
+      "name": "PWBIOS_SPLASH_APLITE",
+      "file": "images/pwbios-144-168-aplite.png"
+    },
+    {
+      "type": "png",
+      "name": "PWBIOS_SPLASH_BASALT",
+      "file": "images/pwbios-144-168-basalt.png"
     },
     {
       "type": "png",

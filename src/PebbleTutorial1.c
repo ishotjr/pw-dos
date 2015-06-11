@@ -1,17 +1,17 @@
 #include <pebble.h>
 
 // TODO: update with each release (major + zero-padded minor version)
-#define VERSION_CODE 107  // v1.7
+#define VERSION_CODE 108  // v1.8
 
 // broken into rows for easier editing
 static const char WHATS_NEW_TEXT_01[] = "+----------------+\n";
 static const char WHATS_NEW_TEXT_02[] = "| ? WHAT'S NEW ? |\n";
 static const char WHATS_NEW_TEXT_03[] = "+----------------+\n";
-static const char WHATS_NEW_TEXT_04[] = "| Vibration on   |\n";
-static const char WHATS_NEW_TEXT_05[] = "| Bluetooth      |\n";
-static const char WHATS_NEW_TEXT_06[] = "| disconnection  |\n";
-static const char WHATS_NEW_TEXT_07[] = "| and connection |\n";
-static const char WHATS_NEW_TEXT_08[] = "| plus more! ;)  |\n";
+static const char WHATS_NEW_TEXT_04[] = "| PWBIOS splash  |\n";
+static const char WHATS_NEW_TEXT_05[] = "| on watchface   |\n";
+static const char WHATS_NEW_TEXT_06[] = "| load ... get   |\n";
+static const char WHATS_NEW_TEXT_07[] = "| ready for it!  |\n";
+static const char WHATS_NEW_TEXT_08[] = "| ;D             |\n";
 static const char WHATS_NEW_TEXT_09[] = "+----------------+\n";
 static const char WHATS_NEW_TEXT_10[] = "| Please shake   |\n";
 static const char WHATS_NEW_TEXT_11[] = "| to dismiss...  |\n";
@@ -22,10 +22,13 @@ static const char WHATS_NEW_TEXT_12[] = "+----------------+\n";
 
 
 // set text/cursor to P1 phosphor green on hardware that supports 64 colors, otherwise revert to white
+// also select green or one-color splash image as appropriate
 #ifdef PBL_COLOR
 #define FOREGROUND_COLOR GColorFromHEX(0x56ff00)
+#define PWBIOS_SPLASH RESOURCE_ID_PWBIOS_SPLASH_BASALT
 #else
 #define FOREGROUND_COLOR GColorWhite
+#define PWBIOS_SPLASH RESOURCE_ID_PWBIOS_SPLASH_APLITE
 #endif
 
 // (18 + \n)x12+\0
@@ -51,11 +54,13 @@ static AppTimer *s_cursor_timer;
 static int s_dir_frame_count = 0;
 static AppTimer *s_dir_timer;
 
+static AppTimer *s_splash_timer;
+
 // persistent storage version (i.e. app version at last write)
 static int s_storage_version_code = 0;
 
-// static BitmapLayer *s_starman_layer;
-// static GBitmap *s_starman_bitmap;
+static BitmapLayer *s_pwbios_splash_layer;
+static GBitmap *s_pwbios_splash_bitmap;
 
 static void update_time(int frame) {
   // Get a tm structure
@@ -143,6 +148,12 @@ static void cursor_timer_callback(void *data) {
   }
 
 }
+
+static void splash_timer_callback(void *data) {
+  // hide splash after 3s
+  layer_set_hidden((Layer *)s_pwbios_splash_layer, true);
+}
+
 
 static void tap_handler(AccelAxisType axis, int32_t direction) {
   // user shook or tapped Pebble (ignore axis/direction)
@@ -234,11 +245,15 @@ static void main_window_load(Window *window) {
   // Add it as a child layer to the Window's root layer
   layer_add_child(window_get_root_layer(window), text_layer_get_layer(s_time_layer));
 
-  // // Create GBitmap, then set to created BitmapLayer
-  // s_starman_bitmap = gbitmap_create_with_resource(RESOURCE_ID_STARMAN);
-  // s_starman_layer = bitmap_layer_create(GRect(104, 128, 40, 40));
-  // bitmap_layer_set_bitmap(s_starman_layer, s_starman_bitmap);
-  // layer_add_child(window_get_root_layer(window), bitmap_layer_get_layer(s_starman_layer));
+
+  // load splash
+
+  // Create GBitmap, then set to created BitmapLayer
+  s_pwbios_splash_bitmap = gbitmap_create_with_resource(PWBIOS_SPLASH);
+  s_pwbios_splash_layer = bitmap_layer_create(GRect(0, 0, 144, 168));
+  bitmap_layer_set_bitmap(s_pwbios_splash_layer, s_pwbios_splash_bitmap);
+  layer_add_child(window_get_root_layer(window), bitmap_layer_get_layer(s_pwbios_splash_layer));
+
 }
 
 static void main_window_unload(Window *window) {
@@ -302,6 +317,9 @@ static void whats_new_window_load(Window *window) {
 static void whats_new_window_unload(Window *window) {
   // Destroy TextLayer
   text_layer_destroy(s_whats_new_layer);
+
+  // start splash timer
+  s_splash_timer = app_timer_register(2 * 1000, (AppTimerCallback) splash_timer_callback, NULL);
 }
 
 
@@ -372,6 +390,9 @@ static void init() {
     });
 
     window_stack_push(s_whats_new_window, true);
+  } else {
+    // start splash timer
+    s_splash_timer = app_timer_register(2 * 1000, (AppTimerCallback) splash_timer_callback, NULL);
   }
 
   // Make sure the time is displayed from the start

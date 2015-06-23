@@ -116,8 +116,8 @@ static void dir_timer_callback(void *data) {
 }
 
 static void tick_handler(struct tm *tick_time, TimeUnits units_changed) {
-  // set up DIR timer for :57
-  s_dir_timer = app_timer_register(56 * 1000, (AppTimerCallback) dir_timer_callback, NULL);
+  // set up DIR timer for :60 - frames*0.500
+  s_dir_timer = app_timer_register(58 * 1000, (AppTimerCallback) dir_timer_callback, NULL);
 
   update_time(0);
 }

@@ -82,7 +82,7 @@ static void update_time(int frame) {
   else if (frame == 3)
       strftime(buffer, BUFFER_SIZE, "pebble OS tty1\nPW-BASH\n\nwatch@basalt:~$ dat", tick_time);
   else if (frame == 4)
-      strftime(buffer, BUFFER_SIZE, "pebble OS tty1\nPW-BASH\n\nwatch@basalt:~$ date\n%a %b %d %T\nwatch@basalt:~$ ", tick_time);           
+      strftime(buffer, BUFFER_SIZE, "pebble OS tty1\nPW-BASH\n\nwatch@basalt:~$ date\n", tick_time);           
   else if (frame == -1)
       strftime(buffer, BUFFER_SIZE, "Bluetooth Disconnect\n", tick_time);
   else {
@@ -106,8 +106,8 @@ static void dir_timer_callback(void *data) {
   // increment frame count and update display
   update_time(++s_dir_frame_count);
 
-  // call again every 0.5s until 6th frame displayed, then reset to 0 and stop calling
-  if (s_dir_frame_count <= 5) {
+  // call again every 0.5s until last "typing" frame displayed, then reset to 0 and stop calling
+  if (s_dir_frame_count <= 4) {
     s_dir_timer = app_timer_register(500, (AppTimerCallback) dir_timer_callback, NULL);
   } else {
     s_dir_frame_count = 0;

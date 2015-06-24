@@ -226,7 +226,7 @@ static void main_window_load(Window *window) {
 
   // crude hack to mitigate sudden deprecation of InverterLayer in dp9
   // TODO: replace!
-  s_cursor_layer = text_layer_create(GRect(32, 141, 7, 1));
+  s_cursor_layer = text_layer_create(GRect(7*16, 12*6+2-12, 7, 12));
 
   text_layer_set_background_color(s_cursor_layer, FOREGROUND_COLOR);
 

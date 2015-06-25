@@ -4,18 +4,19 @@
 #define VERSION_CODE 107  // v1.7
 
 // broken into rows for easier editing
-static const char WHATS_NEW_TEXT_01[] = "+------------------+\n";
-static const char WHATS_NEW_TEXT_02[] = "|  ? WHAT'S NEW ?  |\n";
-static const char WHATS_NEW_TEXT_03[] = "+------------------+\n";
-static const char WHATS_NEW_TEXT_04[] = "|  Vibration on    |\n";
-static const char WHATS_NEW_TEXT_05[] = "|  Bluetooth       |\n";
-static const char WHATS_NEW_TEXT_06[] = "|  disconnection   |\n";
-static const char WHATS_NEW_TEXT_07[] = "|  and connection  |\n";
-static const char WHATS_NEW_TEXT_08[] = "|  plus more! ;)   |\n";
-static const char WHATS_NEW_TEXT_09[] = "+------------------+\n";
-static const char WHATS_NEW_TEXT_10[] = "|  Please shake    |\n";
-static const char WHATS_NEW_TEXT_11[] = "|  to dismiss...   |\n";
-static const char WHATS_NEW_TEXT_12[] = "+------------------+";
+static const char WHATS_NEW_TEXT_01[] = "watch:~$ man pw-bash\n";
+static const char WHATS_NEW_TEXT_02[] = "\n";
+static const char WHATS_NEW_TEXT_03[] = "PW-BASH(1)\n";
+static const char WHATS_NEW_TEXT_04[] = "\n";
+static const char WHATS_NEW_TEXT_05[] = "NAME\n";
+static const char WHATS_NEW_TEXT_06[] = "  pw-bash -- a silly\n";
+static const char WHATS_NEW_TEXT_07[] = "  Pebble watchface \n";
+static const char WHATS_NEW_TEXT_08[] = "DESCRIPTION\n";
+static const char WHATS_NEW_TEXT_09[] = "  Initial release - \n";
+static const char WHATS_NEW_TEXT_10[] = "  let us know your \n";
+static const char WHATS_NEW_TEXT_11[] = "  feedback!\n";
+static const char WHATS_NEW_TEXT_12[] = "\n";
+static const char WHATS_NEW_TEXT_13[] = "  Shake to dismiss!";
 
 // persistent storage keys
 #define STORAGE_VERSION_CODE_KEY 1
@@ -30,8 +31,8 @@ static const char WHATS_NEW_TEXT_12[] = "+------------------+";
 #define TUX_SPLASH RESOURCE_ID_TUX_BW
 #endif
 
-// (18 + \n)x12+\0
-#define BUFFER_SIZE 229
+// (19 + \n)x13+\0
+#define BUFFER_SIZE 261
 
 // number of milliseconds cursor stays on/off, and total duration
 #define BLINK_RATE_MS 533
@@ -296,9 +297,10 @@ static void whats_new_window_load(Window *window) {
 
   // assemble WHATS_NEW_TEXT_*
   static char whats_new_buffer[BUFFER_SIZE];
-  snprintf(whats_new_buffer, sizeof(whats_new_buffer), "%s%s%s%s%s%s%s%s%s%s%s%s", WHATS_NEW_TEXT_01, WHATS_NEW_TEXT_02,
+  snprintf(whats_new_buffer, sizeof(whats_new_buffer), "%s%s%s%s%s%s%s%s%s%s%s%s%s", WHATS_NEW_TEXT_01, WHATS_NEW_TEXT_02,
     WHATS_NEW_TEXT_03, WHATS_NEW_TEXT_04, WHATS_NEW_TEXT_05, WHATS_NEW_TEXT_06, WHATS_NEW_TEXT_07,
-    WHATS_NEW_TEXT_08, WHATS_NEW_TEXT_09, WHATS_NEW_TEXT_10, WHATS_NEW_TEXT_11, WHATS_NEW_TEXT_12);
+    WHATS_NEW_TEXT_08, WHATS_NEW_TEXT_09, WHATS_NEW_TEXT_10, WHATS_NEW_TEXT_11, WHATS_NEW_TEXT_12,
+    WHATS_NEW_TEXT_13);
   text_layer_set_text(s_whats_new_layer, whats_new_buffer);
 
   // 

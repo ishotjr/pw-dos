@@ -1,17 +1,17 @@
 #include <pebble.h>
 
 // TODO: update with each release (major + zero-padded minor version)
-#define VERSION_CODE 108  // v1.8
+#define VERSION_CODE 109  // v1.9
 
 // broken into rows for easier editing
 static const char WHATS_NEW_TEXT_01[] = "+----------------+\n";
 static const char WHATS_NEW_TEXT_02[] = "| ? WHAT'S NEW ? |\n";
 static const char WHATS_NEW_TEXT_03[] = "+----------------+\n";
-static const char WHATS_NEW_TEXT_04[] = "| PWBIOS splash  |\n";
-static const char WHATS_NEW_TEXT_05[] = "| on watchface   |\n";
-static const char WHATS_NEW_TEXT_06[] = "| load ... get   |\n";
-static const char WHATS_NEW_TEXT_07[] = "| ready for it!  |\n";
-static const char WHATS_NEW_TEXT_08[] = "| ;D             |\n";
+static const char WHATS_NEW_TEXT_04[] = "| [Pebble Time]  |\n";
+static const char WHATS_NEW_TEXT_05[] = "| Shake again    |\n";
+static const char WHATS_NEW_TEXT_06[] = "| during cursor  |\n";
+static const char WHATS_NEW_TEXT_07[] = "| blink to toggle|\n";
+static const char WHATS_NEW_TEXT_08[] = "| display color! |\n";
 static const char WHATS_NEW_TEXT_09[] = "+----------------+\n";
 static const char WHATS_NEW_TEXT_10[] = "| Please shake   |\n";
 static const char WHATS_NEW_TEXT_11[] = "| to dismiss...  |\n";
@@ -19,17 +19,17 @@ static const char WHATS_NEW_TEXT_12[] = "+----------------+\n";
 
 // persistent storage keys
 #define STORAGE_VERSION_CODE_KEY 1
+#define STORAGE_FOREGROUND_COLOR_KEY 2
 
 
-// set text/cursor to P1 phosphor green on hardware that supports 64 colors, otherwise revert to white
-// also select green or one-color splash image as appropriate
+// select green or one-color splash image as appropriate
 #ifdef PBL_COLOR
-#define FOREGROUND_COLOR GColorFromHEX(0x56ff00)
 #define PWBIOS_SPLASH RESOURCE_ID_PWBIOS_SPLASH_BASALT
 #else
-#define FOREGROUND_COLOR GColorWhite
 #define PWBIOS_SPLASH RESOURCE_ID_PWBIOS_SPLASH_APLITE
 #endif
+// TODO: replace via tags technique? ^^^
+
 
 // (18 + \n)x12+\0
 #define BUFFER_SIZE 229
@@ -62,6 +62,9 @@ static int s_storage_version_code = 0;
 static BitmapLayer *s_pwbios_splash_layer;
 static GBitmap *s_pwbios_splash_bitmap;
 
+static uint8_t s_foreground_color;  // GColor
+
+
 static void update_time(int frame) {
   // Get a tm structure
   time_t temp = time(NULL); 
@@ -91,6 +94,8 @@ static void update_time(int frame) {
       strftime(buffer, BUFFER_SIZE, "C:\\>DIR\n\n\nPW-DOS %d.%m\nCopyright (c) %Y\n\nAUTOEXEC BAT %H:%M\nCOMMAND  COM %H:%M\nCONFIG   SYS %H:%M\n 3 files %j bytes\n %U bytes free", tick_time);    
   else if (frame == -1)
       strftime(buffer, BUFFER_SIZE, "\nNot ready reading drive B at %H:%M\n\nAbort,Retry,Fail?", tick_time);    
+  else if (frame == -2)
+      strftime(buffer, BUFFER_SIZE, "PW-DOS %d.%m\nCopyright (c) %Y\n\nAUTOEXEC BAT %H:%M\nCOMMAND  COM %H:%M\nCONFIG   SYS %H:%M\n 3 files %j bytes\n %U bytes free\n\nC:\\>TOGGLE.BAT\n\nC:\\>", tick_time);    
   else {
       // set "regular" screen again for remainder of the minute
       strftime(buffer, BUFFER_SIZE, "PW-DOS %d.%m\nCopyright (c) %Y\n\nAUTOEXEC BAT %H:%M\nCOMMAND  COM %H:%M\nCONFIG   SYS %H:%M\n 3 files %j bytes\n %U bytes free\n\nC:\\>", tick_time);    
@@ -131,6 +136,11 @@ static void tick_handler(struct tm *tick_time, TimeUnits units_changed) {
 
 static void cursor_timer_callback(void *data) {
 
+  // quick hack to clear TOGGLE.BAT
+  if (s_cursor_blink_count % 2) {
+    update_time(0);
+  }
+
   if (s_cursor_blink_count % 2) {
     // ~~InverterLayer~~ requires cast
     layer_set_hidden((Layer *)s_cursor_layer, false);
@@ -165,7 +175,58 @@ static void tap_handler(AccelAxisType axis, int32_t direction) {
 
     window_stack_pop(s_whats_new_window);
 
-  } else {
+  } else if (s_cursor_blink_count > 0) {
+    // we're in the middle of blinking - change color in response to double-shake!
+
+#ifdef PBL_COLOR
+    if (s_foreground_color == GColorBrightGreenARGB8) {
+      s_foreground_color = GColorChromeYellowARGB8;      
+    } else {
+      s_foreground_color = GColorBrightGreenARGB8;      
+    }
+
+    // TODO: more colors later!
+
+    // (notes)
+
+//P1 phosphor green
+//#define FOREGROUND_COLOR GColorFromHEX(0x56ff00)
+
+// Bright Green - almost the same color
+//#define FOREGROUND_COLOR GColorBrightGreen
+
+// Green
+//#define FOREGROUND_COLOR GColorGreen
+
+// P3 phosphor amber
+//#define FOREGROUND_COLOR GColorFromHEX(0xffb700)
+
+// Chrome Yellow
+//#define FOREGROUND_COLOR GColorChromeYellow
+
+// Red
+//#define FOREGROUND_COLOR GColorRed
+
+
+    // update layers with new color
+    text_layer_set_text_color(s_time_layer, (GColor)s_foreground_color);  
+    text_layer_set_background_color(s_cursor_layer, (GColor)s_foreground_color);
+    // but NOT s_whats_new_layer!
+
+    s_cursor_blink_count = 0; // abort blink if color set???  
+    // TODO: not sure if this even makes sense / how it jives w/ timer event?
+    app_timer_cancel(s_cursor_timer);  
+
+    // ensure no hanging cursor
+    layer_set_hidden((Layer *)s_cursor_layer, true);
+
+    // silly fake batch file
+    update_time(-2);
+
+#endif
+    // do nothing for aplite
+  }
+  else {
     // during normal operation
 
     // kill existing timer in case of repeat shake during BLINK_DURATION_MS
@@ -220,7 +281,7 @@ static void main_window_load(Window *window) {
   s_time_layer = text_layer_create(GRect(0, 0, 144, 168));
   text_layer_set_background_color(s_time_layer, GColorBlack);
 
-  text_layer_set_text_color(s_time_layer, FOREGROUND_COLOR);
+  text_layer_set_text_color(s_time_layer, (GColor)s_foreground_color);
   text_layer_set_overflow_mode(s_time_layer, GTextOverflowModeTrailingEllipsis);
 
   // Create GFont
@@ -235,7 +296,7 @@ static void main_window_load(Window *window) {
   // TODO: replace!
   s_cursor_layer = text_layer_create(GRect(32, 141, 7, 1));
 
-  text_layer_set_background_color(s_cursor_layer, FOREGROUND_COLOR);
+  text_layer_set_background_color(s_cursor_layer, (GColor)s_foreground_color);
 
   // Add as child to time TextLayer
   layer_add_child(text_layer_get_layer(s_time_layer), text_layer_get_layer(s_cursor_layer));
@@ -290,7 +351,15 @@ static void whats_new_window_load(Window *window) {
   // Create what's new TextLayer
   s_whats_new_layer = text_layer_create(GRect(0, 0, window_bounds.size.w, window_bounds.size.h));
   text_layer_set_background_color(s_whats_new_layer, GColorBlack);
-  text_layer_set_text_color(s_whats_new_layer, FOREGROUND_COLOR);
+
+  // v1.9 only! demo new amber color via what's new!
+#ifdef PBL_COLOR
+  text_layer_set_text_color(s_whats_new_layer, GColorChromeYellow);
+#else
+  text_layer_set_text_color(s_whats_new_layer, (GColor)s_foreground_color);  
+#endif
+  // TODO: revert after v1.9!!
+  //text_layer_set_text_color(s_whats_new_layer, (GColor)s_foreground_color);
   text_layer_set_overflow_mode(s_whats_new_layer, GTextOverflowModeTrailingEllipsis);
 
   // (inherit from parent window (?))
@@ -330,6 +399,15 @@ static void init() {
 
   // get initial storage version, or set to 0 if none
   s_storage_version_code = persist_exists(STORAGE_VERSION_CODE_KEY) ? persist_read_int(STORAGE_VERSION_CODE_KEY) : 0;
+
+  // no special handling required for this one (unlike version) - if it's not set, just default to Bright Green
+#ifdef PBL_COLOR
+  s_foreground_color = persist_exists(STORAGE_FOREGROUND_COLOR_KEY) ? persist_read_int(STORAGE_FOREGROUND_COLOR_KEY) : GColorBrightGreenARGB8;
+#else
+  s_foreground_color = persist_exists(STORAGE_FOREGROUND_COLOR_KEY) ? persist_read_int(STORAGE_FOREGROUND_COLOR_KEY) : GColorWhite;
+#endif
+
+  
 
   // compare storage version to current version code
   if (s_storage_version_code < VERSION_CODE) {
@@ -411,8 +489,9 @@ static void init() {
 
 static void deinit() {
 
-  // persist storage version between launches
+  // persist storage version and color between launches
   persist_write_int(STORAGE_VERSION_CODE_KEY, s_storage_version_code);
+  persist_write_int(STORAGE_FOREGROUND_COLOR_KEY, s_foreground_color);
 
   // Destroy Windows
   window_destroy(s_main_window);

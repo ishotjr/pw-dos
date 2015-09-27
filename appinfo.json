@@ -4,7 +4,7 @@
   "longName": "PW-DOS Command Line Watchface",
   "companyName": "ishotjr.com",
   "versionCode": 1,
-  "versionLabel": "1.8",
+  "versionLabel": "1.9",
   "sdkVersion": "3",
   "targetPlatforms": ["aplite", "basalt"],
   "watchapp": {

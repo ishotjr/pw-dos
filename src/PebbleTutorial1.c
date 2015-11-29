@@ -1,7 +1,7 @@
 #include <pebble.h>
 
 // TODO: update with each release (major + zero-padded minor version)
-#define VERSION_CODE 109  // v1.9
+#define VERSION_CODE 110  // v1.10
 
 // broken into rows for easier editing
 static const char WHATS_NEW_TEXT_01[] = "+----------------+\n";
@@ -63,6 +63,194 @@ static BitmapLayer *s_pwbios_splash_layer;
 static GBitmap *s_pwbios_splash_bitmap;
 
 static uint8_t s_foreground_color;  // GColor
+
+
+
+// smartstrap support
+
+static const SmartstrapServiceId SERVICE_ID = 0x1001;
+
+// TODO: might as well make these 1, 2 later (req. update on Arduino)
+static const SmartstrapAttributeId BUFFER_ATTRIBUTE_ID = 0x0003;
+static const size_t BUFFER_ATTRIBUTE_LENGTH = 31;
+static const SmartstrapAttributeId TIME_ATTRIBUTE_ID = 0x0004;
+static const size_t TIME_ATTRIBUTE_LENGTH = 4;
+
+static SmartstrapAttribute *buffer_attribute;
+static SmartstrapAttribute *time_attribute;
+
+
+
+
+// shoving prototypes here for now to allow use before definition after smartstrap stuff...
+static void update_time(int frame);
+
+
+static void scroll_timer_callback(void *data) {
+
+  /*
+  // kill cursor timer throughout DIR animation (user could shake during) and force hidden 
+  // (to prevent floating cursor)
+  app_timer_cancel(s_cursor_timer);
+  layer_set_hidden((Layer *)s_cursor_layer, true);
+  */
+
+  // for KB version, we actually want to skip the "DIR" part
+  if (s_dir_frame_count < 3) {
+    s_dir_frame_count = 3;
+  }
+
+  // increment frame count and update display
+  update_time(++s_dir_frame_count);
+
+  // call again every 0.5s until 6th frame displayed, then reset to 0 and stop calling
+  if (s_dir_frame_count <= 6) {
+    s_dir_timer = app_timer_register(500, (AppTimerCallback) scroll_timer_callback, NULL);
+  } else {
+    //s_dir_frame_count = 0;
+    // using -1 as a quick hack to flag that it's run once and not to allow again
+    // until we have fresh input (which has subsequently been cleared)
+    s_dir_frame_count = -1;
+  }
+
+}
+
+static void prv_availability_changed(SmartstrapServiceId service_id, bool available) {
+  if (service_id != SERVICE_ID) {
+    return;
+  }
+
+  if (available) {
+    s_foreground_color = GColorBrightGreenARGB8;
+    text_layer_set_text_color(s_time_layer, (GColor)s_foreground_color);  
+    //text_layer_set_background_color(status_text_layer, GColorGreen);
+    //text_layer_set_text(status_text_layer, "Connected!");
+    update_time(0);
+  } else {
+    s_foreground_color = GColorChromeYellowARGB8;
+    text_layer_set_text_color(s_time_layer, (GColor)s_foreground_color);  
+    update_time(-1); // A/R/F error
+    //text_layer_set_background_color(status_text_layer, GColorRed);
+    //text_layer_set_text(status_text_layer, "Disonnected!");
+  }
+}
+
+static void prv_did_read(SmartstrapAttribute *attr, SmartstrapResult result,
+                         const uint8_t *data, size_t length) {
+  APP_LOG(APP_LOG_LEVEL_DEBUG, "prv_did_read");
+  if (attr != buffer_attribute) {
+    APP_LOG(APP_LOG_LEVEL_ERROR, "Unknown attribute");
+    return;
+  }
+  if (result != SmartstrapResultOk) {
+    APP_LOG(APP_LOG_LEVEL_ERROR, "Read failed with result %d", result);
+    return;
+  }
+  if (length != BUFFER_ATTRIBUTE_LENGTH) {
+    APP_LOG(APP_LOG_LEVEL_ERROR, "Got response of unexpected length (%d)", length);
+    return;
+  }
+
+  if (attr == buffer_attribute) {
+    APP_LOG(APP_LOG_LEVEL_DEBUG, "buffer_attribute");
+
+    if (data[0] == 0) {
+      // refresh on enter
+      // TODO: should actually "animate"!
+      // BUT!! need to prevent looping - should only do ONCE until new stuff is typed?
+
+      //static char buffer_buffer[500];
+      //snprintf(buffer_buffer, 500, "animate now since input is [%s]", (char *)data);
+
+      //text_layer_set_text(s_time_layer, buffer_buffer);      
+
+      // trigger scroll "animation"
+      // (using -1 flag to limit to once, reset when new text entered)
+      if (s_dir_frame_count == 0) {
+        scroll_timer_callback(NULL);
+      }
+
+    } else {
+      time_t temp = time(NULL); 
+      struct tm *tick_time = localtime(&temp);
+
+      static char buffer[BUFFER_SIZE];
+      strftime(buffer, BUFFER_SIZE, "PW-DOS %d.%m\nCopyright (c) %Y\n\nAUTOEXEC BAT %H:%M\nCOMMAND  COM %H:%M\nCONFIG   SYS %H:%M\n 3 files %j bytes\n %U bytes free\n\nC:\\>", tick_time);    
+
+      // TODO: tighten up!
+      static char buffer_buffer[500];
+      snprintf(buffer_buffer, 500, "%s%s", buffer, (char *)data);
+
+      text_layer_set_text(s_time_layer, buffer_buffer); 
+
+      // allow scroll animation to fire again once text is cleared
+      s_dir_frame_count = 0;     
+    }
+  }
+}
+
+static void prv_notified(SmartstrapAttribute *attribute) {
+  APP_LOG(APP_LOG_LEVEL_DEBUG, "prv_notified");
+  if (attribute != buffer_attribute) {
+    return;
+  }
+  if (attribute == buffer_attribute) {
+    smartstrap_attribute_read(buffer_attribute);
+  }
+}
+
+
+static void prv_set_time_attribute(void) {
+  SmartstrapResult result;
+  uint8_t *buffer;
+  size_t length;
+  result = smartstrap_attribute_begin_write(time_attribute, &buffer, &length);
+  if (result != SmartstrapResultOk) {
+    APP_LOG(APP_LOG_LEVEL_ERROR, "Begin write failed with error %d", result);
+    return;
+  }
+
+  //time_t temp = 1234567890; //time(NULL); 
+  time_t temp = time(NULL);
+  //struct tm *tick_time = localtime(&temp);
+
+  // hack to get epoch time adjusted to local
+  // (Arduino has no way to determine time zone,
+  // so conversion cannot occur there...)
+  struct tm *local_time = localtime(&temp);
+  struct tm *utc_time = gmtime(&temp);
+
+  // crude solution; only supports full hour TZ diffs!
+  int offset_hours = (local_time->tm_hour - utc_time->tm_hour) % 24;
+  temp = temp + (offset_hours * 60 * 60);
+
+  // pack int bytes into array
+  buffer[3] = (temp >> 24) & 0xFF;
+  buffer[2] = (temp >> 16) & 0xFF;
+  buffer[1] = (temp >> 8) & 0xFF;
+  buffer[0] = temp & 0xFF;
+
+  //buffer = (uint8_t *)&temp;
+
+  APP_LOG(APP_LOG_LEVEL_DEBUG, "temp %u", *(unsigned int *)buffer); //uint32_t
+
+  result = smartstrap_attribute_end_write(time_attribute, 4, false);
+  if (result != SmartstrapResultOk) {
+    APP_LOG(APP_LOG_LEVEL_ERROR, "Begin write failed with error %d", result);
+    return;
+  }
+}
+
+
+static void select_click_handler(ClickRecognizerRef recognizer, void *context) {
+  prv_set_time_attribute();
+}
+
+static void click_config_provider(void *context) {
+  window_single_click_subscribe(BUTTON_ID_SELECT, select_click_handler);
+}
+
+
 
 
 static void update_time(int frame) {
@@ -315,6 +503,10 @@ static void main_window_load(Window *window) {
   bitmap_layer_set_bitmap(s_pwbios_splash_layer, s_pwbios_splash_bitmap);
   layer_add_child(window_get_root_layer(window), bitmap_layer_get_layer(s_pwbios_splash_layer));
 
+
+  // smartstrap service availability
+  prv_availability_changed(SERVICE_ID, smartstrap_service_is_available(SERVICE_ID));
+
 }
 
 static void main_window_unload(Window *window) {
@@ -408,7 +600,8 @@ static void init() {
 #endif
 
   
-
+  // TODO: restore!
+  /*
   // compare storage version to current version code
   if (s_storage_version_code < VERSION_CODE) {
     // storage is old
@@ -436,7 +629,7 @@ static void init() {
 
     // TODO: revert to defaults?
   }
-
+  */
 
 
   // Create main Window element and assign to pointer
@@ -474,8 +667,10 @@ static void init() {
   }
 
   // Make sure the time is displayed from the start
-  update_time(0);
+  //update_time(0);
 
+  // TODO: restore
+  /*
   // Register with TickTimerService
   tick_timer_service_subscribe(MINUTE_UNIT, tick_handler);
   //tick_timer_service_subscribe(SECOND_UNIT, tick_handler);
@@ -485,6 +680,24 @@ static void init() {
 
   // Register with Bluetooth Connection Service
   bluetooth_connection_service_subscribe(bt_handler);
+  */
+
+
+  // buttons
+  window_set_click_config_provider(s_main_window, click_config_provider);
+
+  // set up smartstrap
+  SmartstrapHandlers handlers = (SmartstrapHandlers) {
+    .availability_did_change = prv_availability_changed,
+    .did_read = prv_did_read,
+    .notified = prv_notified
+  };
+  smartstrap_subscribe(handlers);
+  buffer_attribute = smartstrap_attribute_create(SERVICE_ID, BUFFER_ATTRIBUTE_ID,
+                                                 BUFFER_ATTRIBUTE_LENGTH);
+  time_attribute = smartstrap_attribute_create(SERVICE_ID, TIME_ATTRIBUTE_ID,
+                                                 TIME_ATTRIBUTE_LENGTH);
+
 }
 
 static void deinit() {
@@ -496,6 +709,9 @@ static void deinit() {
   // Destroy Windows
   window_destroy(s_main_window);
   window_destroy(s_whats_new_window);
+
+  smartstrap_attribute_destroy(buffer_attribute);
+  smartstrap_attribute_destroy(time_attribute);
 }
 
 int main(void) {

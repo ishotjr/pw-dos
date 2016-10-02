@@ -22,15 +22,6 @@ static const char WHATS_NEW_TEXT_12[] = "+----------------+\n";
 #define STORAGE_FOREGROUND_COLOR_KEY 2
 
 
-// select green or one-color splash image as appropriate
-#ifdef PBL_COLOR
-#define PWBIOS_SPLASH RESOURCE_ID_PWBIOS_SPLASH_BASALT
-#else
-#define PWBIOS_SPLASH RESOURCE_ID_PWBIOS_SPLASH_APLITE
-#endif
-// TODO: replace via tags technique? ^^^
-
-
 // (18 + \n)x12+\0
 #define BUFFER_SIZE 229
 
@@ -316,7 +307,7 @@ static void main_window_load(Window *window) {
   // load splash
 
   // Create GBitmap, then set to created BitmapLayer
-  s_pwbios_splash_bitmap = gbitmap_create_with_resource(PWBIOS_SPLASH);
+  s_pwbios_splash_bitmap = gbitmap_create_with_resource(RESOURCE_ID_PWBIOS_SPLASH);
   s_pwbios_splash_layer = bitmap_layer_create(GRect(0, 0, 144, 168));
   bitmap_layer_set_bitmap(s_pwbios_splash_layer, s_pwbios_splash_bitmap);
   layer_add_child(window_get_root_layer(window), bitmap_layer_get_layer(s_pwbios_splash_layer));

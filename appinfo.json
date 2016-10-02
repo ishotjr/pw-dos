@@ -19,7 +19,7 @@
       "menuIcon": true,
       "type": "png",
       "name": "IMAGE_MENU_ICON",
-      "file": "images/pw-dos-28.png"
+      "file": "images/pw-dos-25-sdk4.png"
     },
     {
       "type": "font",
@@ -28,18 +28,8 @@
     },
     {
       "type": "png",
-      "name": "PWBIOS_SPLASH_APLITE",
-      "file": "images/pwbios-144-168-aplite.png"
-    },
-    {
-      "type": "png",
-      "name": "PWBIOS_SPLASH_BASALT",
-      "file": "images/pwbios-144-168-basalt.png"
-    },
-    {
-      "type": "png",
-      "name": "STARMAN",
-      "file": "images/starman.png"
+      "name": "PWBIOS_SPLASH",
+      "file": "images/pwbios-144-168.png"
     }
     ]
   }

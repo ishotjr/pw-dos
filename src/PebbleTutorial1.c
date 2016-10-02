@@ -22,15 +22,6 @@ static const char WHATS_NEW_TEXT_12[] = "+----------------+\n";
 #define STORAGE_FOREGROUND_COLOR_KEY 2
 
 
-// select green or one-color splash image as appropriate
-#ifdef PBL_COLOR
-#define PWBIOS_SPLASH RESOURCE_ID_PWBIOS_SPLASH_BASALT
-#else
-#define PWBIOS_SPLASH RESOURCE_ID_PWBIOS_SPLASH_APLITE
-#endif
-// TODO: replace via tags technique? ^^^
-
-
 // (18 + \n)x12+\0
 #define BUFFER_SIZE 229
 
@@ -62,7 +53,13 @@ static int s_storage_version_code = 0;
 static BitmapLayer *s_pwbios_splash_layer;
 static GBitmap *s_pwbios_splash_bitmap;
 
-static uint8_t s_foreground_color;  // GColor
+
+// actual *types* differ between platforms!
+#ifdef PBL_COLOR
+  static GColor8 s_foreground_color;
+#else
+  static GColor s_foreground_color;
+#endif
 
 
 static void update_time(int frame) {
@@ -179,10 +176,10 @@ static void tap_handler(AccelAxisType axis, int32_t direction) {
     // we're in the middle of blinking - change color in response to double-shake!
 
 #ifdef PBL_COLOR
-    if (s_foreground_color == GColorBrightGreenARGB8) {
-      s_foreground_color = GColorChromeYellowARGB8;      
+    if (gcolor_equal(s_foreground_color, GColorBrightGreen)) {
+      s_foreground_color = GColorChromeYellow;      
     } else {
-      s_foreground_color = GColorBrightGreenARGB8;      
+      s_foreground_color = GColorBrightGreen;      
     }
 
     // TODO: more colors later!
@@ -310,7 +307,7 @@ static void main_window_load(Window *window) {
   // load splash
 
   // Create GBitmap, then set to created BitmapLayer
-  s_pwbios_splash_bitmap = gbitmap_create_with_resource(PWBIOS_SPLASH);
+  s_pwbios_splash_bitmap = gbitmap_create_with_resource(RESOURCE_ID_PWBIOS_SPLASH);
   s_pwbios_splash_layer = bitmap_layer_create(GRect(0, 0, 144, 168));
   bitmap_layer_set_bitmap(s_pwbios_splash_layer, s_pwbios_splash_bitmap);
   layer_add_child(window_get_root_layer(window), bitmap_layer_get_layer(s_pwbios_splash_layer));
@@ -401,11 +398,20 @@ static void init() {
   s_storage_version_code = persist_exists(STORAGE_VERSION_CODE_KEY) ? persist_read_int(STORAGE_VERSION_CODE_KEY) : 0;
 
   // no special handling required for this one (unlike version) - if it's not set, just default to Bright Green
+
+  if (persist_exists(STORAGE_FOREGROUND_COLOR_KEY)) {
 #ifdef PBL_COLOR
-  s_foreground_color = persist_exists(STORAGE_FOREGROUND_COLOR_KEY) ? persist_read_int(STORAGE_FOREGROUND_COLOR_KEY) : GColorBrightGreenARGB8;
+    s_foreground_color.argb = persist_read_int(STORAGE_FOREGROUND_COLOR_KEY);
 #else
-  s_foreground_color = persist_exists(STORAGE_FOREGROUND_COLOR_KEY) ? persist_read_int(STORAGE_FOREGROUND_COLOR_KEY) : GColorWhite;
+    s_foreground_color.argb = persist_read_int(STORAGE_FOREGROUND_COLOR_KEY);
 #endif
+  } else {
+#ifdef PBL_COLOR
+    s_foreground_color = GColorBrightGreen;
+#else
+    s_foreground_color = GColorWhite;
+#endif
+  }
 
   
 
@@ -491,7 +497,7 @@ static void deinit() {
 
   // persist storage version and color between launches
   persist_write_int(STORAGE_VERSION_CODE_KEY, s_storage_version_code);
-  persist_write_int(STORAGE_FOREGROUND_COLOR_KEY, s_foreground_color);
+  persist_write_int(STORAGE_FOREGROUND_COLOR_KEY, s_foreground_color.argb);
 
   // Destroy Windows
   window_destroy(s_main_window);

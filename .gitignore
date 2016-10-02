@@ -11,3 +11,6 @@ pebble-screenshot_*
 gifs
 *.gif
 pngs
+
+# Ignore local npm packages
+node_modules/

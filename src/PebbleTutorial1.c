@@ -1,17 +1,17 @@
 #include <pebble.h>
 
 // TODO: update with each release (major + zero-padded minor version)
-#define VERSION_CODE 109  // v1.9
+#define VERSION_CODE 110  // v1.10
 
 // broken into rows for easier editing
 static const char WHATS_NEW_TEXT_01[] = "+----------------+\n";
 static const char WHATS_NEW_TEXT_02[] = "| ? WHAT'S NEW ? |\n";
 static const char WHATS_NEW_TEXT_03[] = "+----------------+\n";
-static const char WHATS_NEW_TEXT_04[] = "| [Pebble Time]  |\n";
-static const char WHATS_NEW_TEXT_05[] = "| Shake again    |\n";
-static const char WHATS_NEW_TEXT_06[] = "| during cursor  |\n";
-static const char WHATS_NEW_TEXT_07[] = "| blink to toggle|\n";
-static const char WHATS_NEW_TEXT_08[] = "| display color! |\n";
+static const char WHATS_NEW_TEXT_04[] = "| Updated for    |\n";
+static const char WHATS_NEW_TEXT_05[] = "| SDK 4.0 inclu- |\n";
+static const char WHATS_NEW_TEXT_06[] = "| ding Pebble 2  |\n";
+static const char WHATS_NEW_TEXT_07[] = "| (Diorite)      |\n";
+static const char WHATS_NEW_TEXT_08[] = "| support! :D    |\n";
 static const char WHATS_NEW_TEXT_09[] = "+----------------+\n";
 static const char WHATS_NEW_TEXT_10[] = "| Please shake   |\n";
 static const char WHATS_NEW_TEXT_11[] = "| to dismiss...  |\n";
@@ -206,8 +206,8 @@ static void tap_handler(AccelAxisType axis, int32_t direction) {
 
 
     // update layers with new color
-    text_layer_set_text_color(s_time_layer, (GColor)s_foreground_color);  
-    text_layer_set_background_color(s_cursor_layer, (GColor)s_foreground_color);
+    text_layer_set_text_color(s_time_layer, s_foreground_color);  
+    text_layer_set_background_color(s_cursor_layer, s_foreground_color);
     // but NOT s_whats_new_layer!
 
     s_cursor_blink_count = 0; // abort blink if color set???  
@@ -278,7 +278,7 @@ static void main_window_load(Window *window) {
   s_time_layer = text_layer_create(GRect(0, 0, 144, 168));
   text_layer_set_background_color(s_time_layer, GColorBlack);
 
-  text_layer_set_text_color(s_time_layer, (GColor)s_foreground_color);
+  text_layer_set_text_color(s_time_layer, s_foreground_color);
   text_layer_set_overflow_mode(s_time_layer, GTextOverflowModeTrailingEllipsis);
 
   // Create GFont
@@ -293,7 +293,8 @@ static void main_window_load(Window *window) {
   // TODO: replace!
   s_cursor_layer = text_layer_create(GRect(32, 141, 7, 1));
 
-  text_layer_set_background_color(s_cursor_layer, (GColor)s_foreground_color);
+  APP_LOG(APP_LOG_LEVEL_DEBUG, "text_layer_set_background_color() %d", s_foreground_color.argb);
+  text_layer_set_background_color(s_cursor_layer, s_foreground_color);
 
   // Add as child to time TextLayer
   layer_add_child(text_layer_get_layer(s_time_layer), text_layer_get_layer(s_cursor_layer));
@@ -353,10 +354,10 @@ static void whats_new_window_load(Window *window) {
 #ifdef PBL_COLOR
   text_layer_set_text_color(s_whats_new_layer, GColorChromeYellow);
 #else
-  text_layer_set_text_color(s_whats_new_layer, (GColor)s_foreground_color);  
+  text_layer_set_text_color(s_whats_new_layer, s_foreground_color);  
 #endif
   // TODO: revert after v1.9!!
-  //text_layer_set_text_color(s_whats_new_layer, (GColor)s_foreground_color);
+  //text_layer_set_text_color(s_whats_new_layer, s_foreground_color);
   text_layer_set_overflow_mode(s_whats_new_layer, GTextOverflowModeTrailingEllipsis);
 
   // (inherit from parent window (?))
@@ -422,7 +423,19 @@ static void init() {
     // for now we use this to display "what's new" message
     is_new_version = true;
 
-    // TODO: migration procedure? (or initialize if 0?)
+    // 1.9 -> 1.10 migration (using s_foreground_color.argb now vs. s_foreground_color set to GColor*ARGB8 values)
+    if (s_storage_version_code == 109) {
+      // TODO: some kind of conversion from GColor*ARGB8 value???
+
+      // actually, for now - let's just reinitialize, it's not that big of a deal!?
+#ifdef PBL_COLOR
+      s_foreground_color = GColorBrightGreen;
+#else
+      s_foreground_color = GColorWhite;
+#endif
+
+    }
+    // TODO: initialize if 0?
 
     //REMINDER: update s_storage_version_code when complete!
 

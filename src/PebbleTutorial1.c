@@ -20,6 +20,7 @@ static const char WHATS_NEW_TEXT_12[] = "+----------------+\n";
 // persistent storage keys
 #define STORAGE_VERSION_CODE_KEY 1
 #define STORAGE_FOREGROUND_COLOR_KEY 2
+#define STORAGE_USE_MIDDLE_ENDIAN_DATE 3
 
 
 // (18 + \n)x12+\0
@@ -61,6 +62,8 @@ static GBitmap *s_pwbios_splash_bitmap;
   static GColor s_foreground_color;
 #endif
 
+static bool s_use_middle_endian_date_string;
+
 
 static void update_time(int frame) {
   // Get a tm structure
@@ -75,26 +78,53 @@ static void update_time(int frame) {
 
   // TODO: this is horrendous/just very rough a prototype - refactor ASAP!
 
+  // TODO: replace instances of "if (s_use_middle_endian_date_string)" with a function that returns date
+  // note: allowing use of more concise yet smelly no-brackets style since this is very temporary
+
   // fake DIR "typing"
   if (frame == 1)
+    if (s_use_middle_endian_date_string)
+      strftime(buffer, BUFFER_SIZE, "PW-DOS %m.%d\nCopyright (c) %Y\n\nAUTOEXEC BAT %H:%M\nCOMMAND  COM %H:%M\nCONFIG   SYS %H:%M\n 3 files %j bytes\n %U bytes free\n\nC:\\>D", tick_time);    
+    else
       strftime(buffer, BUFFER_SIZE, "PW-DOS %d.%m\nCopyright (c) %Y\n\nAUTOEXEC BAT %H:%M\nCOMMAND  COM %H:%M\nCONFIG   SYS %H:%M\n 3 files %j bytes\n %U bytes free\n\nC:\\>D", tick_time);    
   else if (frame == 2)
+    if (s_use_middle_endian_date_string)
+      strftime(buffer, BUFFER_SIZE, "PW-DOS %m.%d\nCopyright (c) %Y\n\nAUTOEXEC BAT %H:%M\nCOMMAND  COM %H:%M\nCONFIG   SYS %H:%M\n 3 files %j bytes\n %U bytes free\n\nC:\\>DI", tick_time);    
+    else
       strftime(buffer, BUFFER_SIZE, "PW-DOS %d.%m\nCopyright (c) %Y\n\nAUTOEXEC BAT %H:%M\nCOMMAND  COM %H:%M\nCONFIG   SYS %H:%M\n 3 files %j bytes\n %U bytes free\n\nC:\\>DI", tick_time);    
   else if (frame == 3)
+    if (s_use_middle_endian_date_string)
+      strftime(buffer, BUFFER_SIZE, "PW-DOS %m.%d\nCopyright (c) %Y\n\nAUTOEXEC BAT %H:%M\nCOMMAND  COM %H:%M\nCONFIG   SYS %H:%M\n 3 files %j bytes\n %U bytes free\n\nC:\\>DIR", tick_time);    
+    else
       strftime(buffer, BUFFER_SIZE, "PW-DOS %d.%m\nCopyright (c) %Y\n\nAUTOEXEC BAT %H:%M\nCOMMAND  COM %H:%M\nCONFIG   SYS %H:%M\n 3 files %j bytes\n %U bytes free\n\nC:\\>DIR", tick_time);    
   // fake "scroll" after DIR
   else if (frame == 4)
+    if (s_use_middle_endian_date_string)
+      strftime(buffer, BUFFER_SIZE, "AUTOEXEC BAT %H:%M\nCOMMAND  COM %H:%M\nCONFIG   SYS %H:%M\n 3 files %j bytes\n %U bytes free\n\nC:\\>DIR\nPW-DOS %m.%d\nCopyright (c) %Y\n\n", tick_time);    
+    else
       strftime(buffer, BUFFER_SIZE, "AUTOEXEC BAT %H:%M\nCOMMAND  COM %H:%M\nCONFIG   SYS %H:%M\n 3 files %j bytes\n %U bytes free\n\nC:\\>DIR\nPW-DOS %d.%m\nCopyright (c) %Y\n\n", tick_time);    
   else if (frame == 5)
+    if (s_use_middle_endian_date_string)
+      strftime(buffer, BUFFER_SIZE, "\n 3 files %j bytes\n %U bytes free\n\nC:\\>DIR\nPW-DOS %m.%d\nCopyright (c) %Y\n\nAUTOEXEC BAT %H:%M\nCOMMAND  COM %H:%M\nCONFIG   SYS %H:%M", tick_time);    
+    else
       strftime(buffer, BUFFER_SIZE, "\n 3 files %j bytes\n %U bytes free\n\nC:\\>DIR\nPW-DOS %d.%m\nCopyright (c) %Y\n\nAUTOEXEC BAT %H:%M\nCOMMAND  COM %H:%M\nCONFIG   SYS %H:%M", tick_time);    
   else if (frame == 6)
+    if (s_use_middle_endian_date_string)
+      strftime(buffer, BUFFER_SIZE, "C:\\>DIR\n\n\nPW-DOS %m.%d\nCopyright (c) %Y\n\nAUTOEXEC BAT %H:%M\nCOMMAND  COM %H:%M\nCONFIG   SYS %H:%M\n 3 files %j bytes\n %U bytes free", tick_time);    
+    else
       strftime(buffer, BUFFER_SIZE, "C:\\>DIR\n\n\nPW-DOS %d.%m\nCopyright (c) %Y\n\nAUTOEXEC BAT %H:%M\nCOMMAND  COM %H:%M\nCONFIG   SYS %H:%M\n 3 files %j bytes\n %U bytes free", tick_time);    
   else if (frame == -1)
-      strftime(buffer, BUFFER_SIZE, "\nNot ready reading drive B at %H:%M\n\nAbort,Retry,Fail?", tick_time);    
+    strftime(buffer, BUFFER_SIZE, "\nNot ready reading drive B at %H:%M\n\nAbort,Retry,Fail?", tick_time);    
   else if (frame == -2)
+    if (s_use_middle_endian_date_string)
+      strftime(buffer, BUFFER_SIZE, "PW-DOS %m.%d\nCopyright (c) %Y\n\nAUTOEXEC BAT %H:%M\nCOMMAND  COM %H:%M\nCONFIG   SYS %H:%M\n 3 files %j bytes\n %U bytes free\n\nC:\\>TOGGLE.BAT\n\nC:\\>", tick_time);    
+    else
       strftime(buffer, BUFFER_SIZE, "PW-DOS %d.%m\nCopyright (c) %Y\n\nAUTOEXEC BAT %H:%M\nCOMMAND  COM %H:%M\nCONFIG   SYS %H:%M\n 3 files %j bytes\n %U bytes free\n\nC:\\>TOGGLE.BAT\n\nC:\\>", tick_time);    
   else {
       // set "regular" screen again for remainder of the minute
+    if (s_use_middle_endian_date_string)
+      strftime(buffer, BUFFER_SIZE, "PW-DOS %m.%d\nCopyright (c) %Y\n\nAUTOEXEC BAT %H:%M\nCOMMAND  COM %H:%M\nCONFIG   SYS %H:%M\n 3 files %j bytes\n %U bytes free\n\nC:\\>", tick_time);    
+    else
       strftime(buffer, BUFFER_SIZE, "PW-DOS %d.%m\nCopyright (c) %Y\n\nAUTOEXEC BAT %H:%M\nCOMMAND  COM %H:%M\nCONFIG   SYS %H:%M\n 3 files %j bytes\n %U bytes free\n\nC:\\>", tick_time);    
       //layer_set_hidden((Layer *)s_cursor_layer, false);
   }
@@ -285,9 +315,16 @@ static void inbox_received_callback(DictionaryIterator *iterator, void *context)
 
     APP_LOG(APP_LOG_LEVEL_INFO, "use_middle_endian_date_string: %s", use_middle_endian_date_string);
 
+    // wish the tuple value could be a boolean, but string comp. is fine for now I guess...
+    if (strcmp(use_middle_endian_date_string, "true") == 0) {
+      s_use_middle_endian_date_string = true;
+    } else {
+      s_use_middle_endian_date_string = false;      
+    }
 
-    // TODO: actually make use of use_middle_endian_date_string value!
-
+    // force refresh to reflect new setting
+    update_time(0);
+    // TODO: what about doing a full DIR animation to apply the setting?
 
   } else {
     APP_LOG(APP_LOG_LEVEL_ERROR, "Can't find key %lu!", (unsigned long)MESSAGE_KEY_UseMiddleEndianDate);    
@@ -449,6 +486,12 @@ static void init() {
 #endif
   }
 
+  if (persist_exists(STORAGE_USE_MIDDLE_ENDIAN_DATE)) {
+    s_use_middle_endian_date_string = persist_read_bool(STORAGE_USE_MIDDLE_ENDIAN_DATE);
+  } else {
+    // default to D.M
+    s_use_middle_endian_date_string = false;
+  }
   
 
   // compare storage version to current version code
@@ -558,6 +601,7 @@ static void deinit() {
   // persist storage version and color between launches
   persist_write_int(STORAGE_VERSION_CODE_KEY, s_storage_version_code);
   persist_write_int(STORAGE_FOREGROUND_COLOR_KEY, s_foreground_color.argb);
+  persist_write_bool(STORAGE_USE_MIDDLE_ENDIAN_DATE, s_use_middle_endian_date_string);
 
   // Destroy Windows
   window_destroy(s_main_window);

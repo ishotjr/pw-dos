@@ -2,9 +2,7 @@
   "version": "1.10.0",
   "author": "ishotjr.com",
   "private": true,
-  "dependencies": {
-    "pebble-clay": "^1.0.3"
-  },
+  "dependencies": {},
   "keywords": [
     "pebble-app"
   ],
@@ -33,9 +31,9 @@
     "projectType": "native",
     "uuid": "987cddd7-f8f3-4b93-a08a-b30ae0731111",
     "messageKeys": {
-      "UseMiddleEndianDate": 0
+      "dummy": 0
     },
-    "enableMultiJS": true,
+    "enableMultiJS": false,
     "displayName": "PW-DOS Command Line Watchface",
     "watchapp": {
       "onlyShownOnCommunication": false,

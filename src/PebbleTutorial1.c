@@ -273,6 +273,41 @@ void bt_handler(bool connected) {
 }
 
 
+static void inbox_received_callback(DictionaryIterator *iterator, void *context) {
+
+  APP_LOG(APP_LOG_LEVEL_INFO, "Message received!");
+
+  Tuple *use_middle_endian_date_tuple = dict_find(iterator, MESSAGE_KEY_UseMiddleEndianDate);
+  if(use_middle_endian_date_tuple) {
+
+    // radio groups appear to only work for string values?
+    char *use_middle_endian_date_string = use_middle_endian_date_tuple->value->cstring;
+
+    APP_LOG(APP_LOG_LEVEL_INFO, "use_middle_endian_date_string: %s", use_middle_endian_date_string);
+
+
+    // TODO: actually make use of use_middle_endian_date_string value!
+
+
+  } else {
+    APP_LOG(APP_LOG_LEVEL_ERROR, "Can't find key %lu!", (unsigned long)MESSAGE_KEY_UseMiddleEndianDate);    
+  }
+
+}
+
+static void inbox_dropped_callback(AppMessageResult reason, void *context) {
+  APP_LOG(APP_LOG_LEVEL_ERROR, "Message dropped!");
+}
+
+static void outbox_failed_callback(DictionaryIterator *iterator, AppMessageResult reason, void *context) {
+  APP_LOG(APP_LOG_LEVEL_ERROR, "Outbox send failed!");
+}
+
+static void outbox_sent_callback(DictionaryIterator *iterator, void *context) {
+  APP_LOG(APP_LOG_LEVEL_INFO, "Outbox send success!");
+}
+
+
 static void main_window_load(Window *window) {
   // Create time TextLayer
   s_time_layer = text_layer_create(GRect(0, 0, 144, 168));
@@ -494,6 +529,18 @@ static void init() {
 
   // Make sure the time is displayed from the start
   update_time(0);
+
+
+  // Register callbacks
+  app_message_register_inbox_received(inbox_received_callback);
+  app_message_register_inbox_dropped(inbox_dropped_callback);
+  app_message_register_outbox_failed(outbox_failed_callback);
+  app_message_register_outbox_sent(outbox_sent_callback);
+
+  // Open AppMessage
+  // TODO: sizes?
+  app_message_open(2048,2048);
+
 
   // Register with TickTimerService
   tick_timer_service_subscribe(MINUTE_UNIT, tick_handler);

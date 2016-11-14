@@ -1,17 +1,17 @@
 #include <pebble.h>
 
 // TODO: update with each release (major + zero-padded minor version)
-#define VERSION_CODE 110  // v1.10
+#define VERSION_CODE 200  // v2.0
 
 // broken into rows for easier editing
 static const char WHATS_NEW_TEXT_01[] = "+----------------+\n";
 static const char WHATS_NEW_TEXT_02[] = "| ? WHAT'S NEW ? |\n";
 static const char WHATS_NEW_TEXT_03[] = "+----------------+\n";
-static const char WHATS_NEW_TEXT_04[] = "| Updated for    |\n";
-static const char WHATS_NEW_TEXT_05[] = "| SDK 4.0 inclu- |\n";
-static const char WHATS_NEW_TEXT_06[] = "| ding Pebble 2  |\n";
-static const char WHATS_NEW_TEXT_07[] = "| (Diorite)      |\n";
-static const char WHATS_NEW_TEXT_08[] = "| support! :D    |\n";
+static const char WHATS_NEW_TEXT_04[] = "| Configurable   |\n";
+static const char WHATS_NEW_TEXT_05[] = "| DOS version    |\n";
+static const char WHATS_NEW_TEXT_06[] = "| (date) format! |\n";
+static const char WHATS_NEW_TEXT_07[] = "| D.M or M.D -   |\n";
+static const char WHATS_NEW_TEXT_08[] = "| you choose! :D |\n";
 static const char WHATS_NEW_TEXT_09[] = "+----------------+\n";
 static const char WHATS_NEW_TEXT_10[] = "| Please shake   |\n";
 static const char WHATS_NEW_TEXT_11[] = "| to dismiss...  |\n";

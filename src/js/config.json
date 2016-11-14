@@ -21,11 +21,11 @@
       "label": "Date Endianness",
       "options": [
         {
-          "label": "DD.MM",
+          "label": "D.M",
           "value": "false"
         },
         {
-          "label": "MM.DD",
+          "label": "M.D",
           "value": "true"
         }
       ]

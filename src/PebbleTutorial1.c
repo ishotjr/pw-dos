@@ -21,6 +21,7 @@ static const char WHATS_NEW_TEXT_12[] = "+----------------+\n";
 #define STORAGE_VERSION_CODE_KEY 1
 #define STORAGE_FOREGROUND_COLOR_KEY 2
 #define STORAGE_USE_MIDDLE_ENDIAN_DATE 3
+#define STORAGE_TOGGLE_ENABLED 4
 
 
 // (18 + \n)x12+\0
@@ -62,7 +63,9 @@ static GBitmap *s_pwbios_splash_bitmap;
   static GColor s_foreground_color;
 #endif
 
+// user-configurable settings
 static bool s_use_middle_endian_date_string;
+static bool s_toggle_enabled;
 
 
 static void update_time(int frame) {
@@ -205,53 +208,55 @@ static void tap_handler(AccelAxisType axis, int32_t direction) {
   } else if (s_cursor_blink_count > 0) {
     // we're in the middle of blinking - change color in response to double-shake!
 
+    if (s_toggle_enabled) {
 #ifdef PBL_COLOR
-    if (gcolor_equal(s_foreground_color, GColorBrightGreen)) {
-      s_foreground_color = GColorChromeYellow;      
-    } else {
-      s_foreground_color = GColorBrightGreen;      
-    }
+      if (gcolor_equal(s_foreground_color, GColorBrightGreen)) {
+        s_foreground_color = GColorChromeYellow;      
+      } else {
+        s_foreground_color = GColorBrightGreen;      
+      }
 
-    // TODO: more colors later!
+      // TODO: more colors later!
 
-    // (notes)
+      // (notes)
 
-//P1 phosphor green
-//#define FOREGROUND_COLOR GColorFromHEX(0x56ff00)
+  //P1 phosphor green
+  //#define FOREGROUND_COLOR GColorFromHEX(0x56ff00)
 
-// Bright Green - almost the same color
-//#define FOREGROUND_COLOR GColorBrightGreen
+  // Bright Green - almost the same color
+  //#define FOREGROUND_COLOR GColorBrightGreen
 
-// Green
-//#define FOREGROUND_COLOR GColorGreen
+  // Green
+  //#define FOREGROUND_COLOR GColorGreen
 
-// P3 phosphor amber
-//#define FOREGROUND_COLOR GColorFromHEX(0xffb700)
+  // P3 phosphor amber
+  //#define FOREGROUND_COLOR GColorFromHEX(0xffb700)
 
-// Chrome Yellow
-//#define FOREGROUND_COLOR GColorChromeYellow
+  // Chrome Yellow
+  //#define FOREGROUND_COLOR GColorChromeYellow
 
-// Red
-//#define FOREGROUND_COLOR GColorRed
+  // Red
+  //#define FOREGROUND_COLOR GColorRed
 
 
-    // update layers with new color
-    text_layer_set_text_color(s_time_layer, s_foreground_color);  
-    text_layer_set_background_color(s_cursor_layer, s_foreground_color);
-    // but NOT s_whats_new_layer!
+      // update layers with new color
+      text_layer_set_text_color(s_time_layer, s_foreground_color);  
+      text_layer_set_background_color(s_cursor_layer, s_foreground_color);
+      // but NOT s_whats_new_layer!
 
-    s_cursor_blink_count = 0; // abort blink if color set???  
-    // TODO: not sure if this even makes sense / how it jives w/ timer event?
-    app_timer_cancel(s_cursor_timer);  
+      s_cursor_blink_count = 0; // abort blink if color set???  
+      // TODO: not sure if this even makes sense / how it jives w/ timer event?
+      app_timer_cancel(s_cursor_timer);  
 
-    // ensure no hanging cursor
-    layer_set_hidden((Layer *)s_cursor_layer, true);
+      // ensure no hanging cursor
+      layer_set_hidden((Layer *)s_cursor_layer, true);
 
-    // silly fake batch file
-    update_time(-2);
+      // silly fake batch file
+      update_time(-2);
 
 #endif
     // do nothing for aplite
+    }
   }
   else {
     // during normal operation
@@ -308,6 +313,8 @@ static void inbox_received_callback(DictionaryIterator *iterator, void *context)
   APP_LOG(APP_LOG_LEVEL_INFO, "Message received!");
 
   Tuple *use_middle_endian_date_tuple = dict_find(iterator, MESSAGE_KEY_UseMiddleEndianDate);
+  Tuple *toggle_enabled_tuple = dict_find(iterator, MESSAGE_KEY_ToggleEnabled);
+
   if(use_middle_endian_date_tuple) {
 
     // radio groups appear to only work for string values?
@@ -326,9 +333,17 @@ static void inbox_received_callback(DictionaryIterator *iterator, void *context)
     update_time(0);
     // TODO: what about doing a full DIR animation to apply the setting?
 
-  } else {
-    APP_LOG(APP_LOG_LEVEL_ERROR, "Can't find key %lu!", (unsigned long)MESSAGE_KEY_UseMiddleEndianDate);    
   }
+  if(toggle_enabled_tuple) {
+
+    // clay passes int value rather than boolean
+    s_toggle_enabled = (bool)toggle_enabled_tuple->value->int32;
+
+    APP_LOG(APP_LOG_LEVEL_INFO, "s_toggle_enabled: %s", (s_toggle_enabled ? "true" : "false"));
+
+  }
+  // TODO: ?
+  // APP_LOG(APP_LOG_LEVEL_ERROR, "Can't find key %lu!", (unsigned long)MESSAGE_KEY_UseMiddleEndianDate);    
 
 }
 
@@ -492,6 +507,13 @@ static void init() {
     // default to D.M
     s_use_middle_endian_date_string = false;
   }
+
+  if (persist_exists(STORAGE_TOGGLE_ENABLED)) {
+    s_toggle_enabled = persist_read_int(STORAGE_TOGGLE_ENABLED);
+  } else {
+    // default to enabled
+    s_toggle_enabled = true;
+  }
   
 
   // compare storage version to current version code
@@ -602,6 +624,7 @@ static void deinit() {
   persist_write_int(STORAGE_VERSION_CODE_KEY, s_storage_version_code);
   persist_write_int(STORAGE_FOREGROUND_COLOR_KEY, s_foreground_color.argb);
   persist_write_bool(STORAGE_USE_MIDDLE_ENDIAN_DATE, s_use_middle_endian_date_string);
+  persist_write_int(STORAGE_TOGGLE_ENABLED, s_toggle_enabled);
 
   // Destroy Windows
   window_destroy(s_main_window);

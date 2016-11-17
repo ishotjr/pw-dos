@@ -8,32 +8,51 @@
     "defaultValue": "Thanks for using my silly watchface! <img title=\":bowtie:\" alt=\":blush:\" src=\"https://assets-cdn.github.com/images/icons/emoji/unicode/1f60a.png\" height=\"20\" width=\"20\" align=\"absmiddle\"> Please don't hesitate to share your feedback or suggestions via <a href=\"http://ishotjr.com/tag/pw-dos/\" target=\"_blank\">ishotjr.com</a> or <a href=\"https://twitter.com/IShJR\" target=\"_blank\">@IShJR on Twitter</a>! If you can take a moment to <img title=\":bowtie:\" alt=\":heart:\" src=\"https://assets-cdn.github.com/images/icons/emoji/unicode/2764.png\" height=\"20\" width=\"20\" align=\"absmiddle\"> it in the appstore, I’d really appreciate it - it might not seem like a big deal, but it means a lot to me! <img title=\":bowtie:\" alt=\":heart_eyes:\" src=\"https://assets-cdn.github.com/images/icons/emoji/unicode/1f60d.png\" height=\"20\" width=\"20\" align=\"absmiddle\"><br>-ishotjr <img title=\":bowtie:\" alt=\":bowtie:\" src=\"https://assets.github.com/images/icons/emoji/bowtie.png\" height=\"20\" width=\"20\" align=\"absmiddle\">" 
   },
   {
-  "type": "section",
-  "items": [
-    {
-      "type": "heading",
-      "defaultValue": "DOS Version (Date) Format"
-    },
-    {
-      "type": "radiogroup",
-      "messageKey": "UseMiddleEndianDate",
-      "defaultValue": "false",
-      "label": "Date Endianness",
-      "options": [
-        {
-          "label": "D.M",
-          "value": "false"
-        },
-        {
-          "label": "M.D",
-          "value": "true"
-        }
-      ]
-    },
-    {
-      "type": "submit",
-      "defaultValue": "Save"
-    }
-  ]
-}
+    "type": "section",
+    "items": [
+      {
+        "type": "heading",
+        "defaultValue": "DOS Version (Date) Format"
+      },
+      {
+        "type": "radiogroup",
+        "messageKey": "UseMiddleEndianDate",
+        "defaultValue": "false",
+        "label": "Date Endianness",
+        "options": [
+          {
+            "label": "D.M",
+            "value": "false"
+          },
+          {
+            "label": "M.D",
+            "value": "true"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "type": "section",
+    "items": [
+      {
+        "type": "heading",
+        "defaultValue": "Colors"
+      },
+      {
+        "type": "toggle",
+        "messageKey": "ToggleEnabled",
+        "label": "Enable TOGGLE.BAT",
+        "defaultValue": true
+      },
+      { 
+        "type": "text", 
+        "defaultValue": "Shake again during cursor blink to toggle display color!" 
+      }
+    ]
+  },
+  {
+    "type": "submit",
+    "defaultValue": "Save"
+  }
 ]

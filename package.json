@@ -33,7 +33,8 @@
     "projectType": "native",
     "uuid": "987cddd7-f8f3-4b93-a08a-b30ae0731111",
     "messageKeys": {
-      "UseMiddleEndianDate": 0
+      "UseMiddleEndianDate": 0,
+      "ToggleEnabled": 1
     },
     "enableMultiJS": true,
     "displayName": "PW-DOS Command Line Watchface",

@@ -20,8 +20,9 @@ static const char WHATS_NEW_TEXT_12[] = "+----------------+\n";
 // persistent storage keys
 #define STORAGE_VERSION_CODE_KEY 1
 #define STORAGE_FOREGROUND_COLOR_KEY 2
-#define STORAGE_USE_MIDDLE_ENDIAN_DATE 3
-#define STORAGE_TOGGLE_ENABLED 4
+#define STORAGE_USE_MIDDLE_ENDIAN_DATE_KEY 3
+#define STORAGE_TOGGLE_ENABLED_KEY 4
+#define STORAGE_BACKGROUND_COLOR_KEY 5
 
 
 // (18 + \n)x12+\0
@@ -59,8 +60,10 @@ static GBitmap *s_pwbios_splash_bitmap;
 // actual *types* differ between platforms!
 #ifdef PBL_COLOR
   static GColor8 s_foreground_color;
+  static GColor8 s_background_color;
 #else
   static GColor s_foreground_color;
+  static GColor s_background_color;
 #endif
 
 // user-configurable settings
@@ -209,11 +212,17 @@ static void tap_handler(AccelAxisType axis, int32_t direction) {
     // we're in the middle of blinking - change color in response to double-shake!
 
     if (s_toggle_enabled) {
+
 #ifdef PBL_COLOR
+
+      // color toggle
+
       if (gcolor_equal(s_foreground_color, GColorBrightGreen)) {
         s_foreground_color = GColorChromeYellow;      
+        s_background_color = GColorBlack;
       } else {
         s_foreground_color = GColorBrightGreen;      
+        s_background_color = GColorBlack;
       }
 
       // TODO: more colors later!
@@ -238,10 +247,24 @@ static void tap_handler(AccelAxisType axis, int32_t direction) {
   // Red
   //#define FOREGROUND_COLOR GColorRed
 
+#else
+
+      // B&W toggle
+
+      if (gcolor_equal(s_foreground_color, GColorWhite)) {
+        s_foreground_color = GColorBlack;      
+        s_background_color = GColorWhite;
+      } else {
+        s_foreground_color = GColorWhite;      
+        s_background_color = GColorBlack;
+      }
+      
+#endif
 
       // update layers with new color
       text_layer_set_text_color(s_time_layer, s_foreground_color);  
       text_layer_set_background_color(s_cursor_layer, s_foreground_color);
+      text_layer_set_background_color(s_time_layer, s_background_color);
       // but NOT s_whats_new_layer!
 
       s_cursor_blink_count = 0; // abort blink if color set???  
@@ -254,8 +277,6 @@ static void tap_handler(AccelAxisType axis, int32_t direction) {
       // silly fake batch file
       update_time(-2);
 
-#endif
-    // do nothing for aplite
     }
   }
   else {
@@ -363,7 +384,7 @@ static void outbox_sent_callback(DictionaryIterator *iterator, void *context) {
 static void main_window_load(Window *window) {
   // Create time TextLayer
   s_time_layer = text_layer_create(GRect(0, 0, 144, 168));
-  text_layer_set_background_color(s_time_layer, GColorBlack);
+  text_layer_set_background_color(s_time_layer, s_background_color);
 
   text_layer_set_text_color(s_time_layer, s_foreground_color);
   text_layer_set_overflow_mode(s_time_layer, GTextOverflowModeTrailingEllipsis);
@@ -435,16 +456,9 @@ static void whats_new_window_load(Window *window) {
 
   // Create what's new TextLayer
   s_whats_new_layer = text_layer_create(GRect(0, 0, window_bounds.size.w, window_bounds.size.h));
-  text_layer_set_background_color(s_whats_new_layer, GColorBlack);
+  text_layer_set_background_color(s_whats_new_layer, s_background_color);
 
-  // v1.9 only! demo new amber color via what's new!
-#ifdef PBL_COLOR
-  text_layer_set_text_color(s_whats_new_layer, GColorChromeYellow);
-#else
-  text_layer_set_text_color(s_whats_new_layer, s_foreground_color);  
-#endif
-  // TODO: revert after v1.9!!
-  //text_layer_set_text_color(s_whats_new_layer, s_foreground_color);
+  text_layer_set_text_color(s_whats_new_layer, s_foreground_color);
   text_layer_set_overflow_mode(s_whats_new_layer, GTextOverflowModeTrailingEllipsis);
 
   // (inherit from parent window (?))
@@ -501,15 +515,29 @@ static void init() {
 #endif
   }
 
-  if (persist_exists(STORAGE_USE_MIDDLE_ENDIAN_DATE)) {
-    s_use_middle_endian_date_string = persist_read_bool(STORAGE_USE_MIDDLE_ENDIAN_DATE);
+  if (persist_exists(STORAGE_BACKGROUND_COLOR_KEY)) {
+#ifdef PBL_COLOR
+    s_background_color.argb = persist_read_int(STORAGE_BACKGROUND_COLOR_KEY);
+#else
+    s_background_color.argb = persist_read_int(STORAGE_BACKGROUND_COLOR_KEY);
+#endif
+  } else {
+#ifdef PBL_COLOR
+    s_background_color = GColorBlack;
+#else
+    s_background_color = GColorBlack;
+#endif
+  }
+
+  if (persist_exists(STORAGE_USE_MIDDLE_ENDIAN_DATE_KEY)) {
+    s_use_middle_endian_date_string = persist_read_bool(STORAGE_USE_MIDDLE_ENDIAN_DATE_KEY);
   } else {
     // default to D.M
     s_use_middle_endian_date_string = false;
   }
 
-  if (persist_exists(STORAGE_TOGGLE_ENABLED)) {
-    s_toggle_enabled = persist_read_int(STORAGE_TOGGLE_ENABLED);
+  if (persist_exists(STORAGE_TOGGLE_ENABLED_KEY)) {
+    s_toggle_enabled = persist_read_int(STORAGE_TOGGLE_ENABLED_KEY);
   } else {
     // default to enabled
     s_toggle_enabled = true;
@@ -623,8 +651,9 @@ static void deinit() {
   // persist storage version and color between launches
   persist_write_int(STORAGE_VERSION_CODE_KEY, s_storage_version_code);
   persist_write_int(STORAGE_FOREGROUND_COLOR_KEY, s_foreground_color.argb);
-  persist_write_bool(STORAGE_USE_MIDDLE_ENDIAN_DATE, s_use_middle_endian_date_string);
-  persist_write_int(STORAGE_TOGGLE_ENABLED, s_toggle_enabled);
+  persist_write_bool(STORAGE_USE_MIDDLE_ENDIAN_DATE_KEY, s_use_middle_endian_date_string);
+  persist_write_int(STORAGE_TOGGLE_ENABLED_KEY, s_toggle_enabled);
+  persist_write_int(STORAGE_BACKGROUND_COLOR_KEY, s_background_color.argb);
 
   // Destroy Windows
   window_destroy(s_main_window);
